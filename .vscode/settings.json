@@ -1,0 +1,30 @@
+{
+    "cquery.cacheDirectory": "${workspaceFolder}/.vscode/cquery_cached_index/",
+    "cquery.launch.command": "C:/Program Files/PROS/cquery/cquery.exe",
+
+    // Enable cquery semantic highlighting
+    // "cquery.highlighting.enabled.types": true,
+    // "cquery.highlighting.enabled.freeStandingFunctions": true,
+    // "cquery.highlighting.enabled.memberFunctions": true,
+    // "cquery.highlighting.enabled.freeStandingVariables": true,
+    // "cquery.highlighting.enabled.memberVariables": true,
+    // "cquery.highlighting.enabled.namespaces": true,
+    // "cquery.highlighting.enabled.macros": true,
+    // "cquery.highlighting.enabled.enums": true,
+    // "cquery.highlighting.enabled.typeAliases": true,
+    // "cquery.highlighting.enabled.enumConstants": true,
+    // "cquery.highlighting.enabled.staticMemberFunctions": true,
+    // "cquery.highlighting.enabled.parameters": true,
+    // "cquery.highlighting.enabled.templateParameters": true,
+    // "cquery.highlighting.enabled.staticMemberVariables": true,
+    // "cquery.highlighting.enabled.globalVariables": true,
+
+    // Disable Microsoft C++ Intellisense
+    "C_Cpp.autocomplete": "Disabled",
+    "C_Cpp.formatting": "Disabled",
+    "C_Cpp.errorSquiggles": "Disabled",
+    "C_Cpp.intelliSenseEngine": "Disabled",
+
+    // Enable / Disable Code Lens
+    "editor.codeLens": false,
+}
