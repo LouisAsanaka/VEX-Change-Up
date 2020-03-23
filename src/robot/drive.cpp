@@ -1,10 +1,13 @@
 #include "robot/drive.hpp"
 #include "main.h"
 #include "constants.hpp"
+#include "controller/asyncRamsetePathController.hpp"
+#include "builder/asyncRamsetePathControllerBuilder.hpp"
 
 namespace robot::drive {
 
 	std::shared_ptr<OdomChassisController> controller;
+    std::shared_ptr<AsyncRamsetePathController> pathFollower;
     std::shared_ptr<ChassisModel> model;
 
 	void init() {
@@ -32,11 +35,24 @@ namespace robot::drive {
                     StateMode::FRAME_TRANSFORMATION, 10_mm, 2_deg)
                 .buildOdometry()
         );
+        pathFollower = AsyncRamsetePathControllerBuilder()
+			.withLimits({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, DRIVE_MAX_JERK})
+			.withOutput(controller)
+			.buildRamsetePathController();
 		model = controller->getModel();
 		model->setBrakeMode(AbstractMotor::brakeMode::brake);
 	}
 
-	const OdomState& getState() {
+    void generatePath(std::initializer_list<PathfinderPoint> iwaypoints,
+                      const std::string &ipathId, bool storePath) {
+        pathFollower->generatePath(iwaypoints, ipathId, storePath);
+    }
+
+    void followPath(const std::string& ipathId, bool resetState, bool ibackwards, bool imirrored) {
+        pathFollower->setTarget(ipathId, resetState, ibackwards, imirrored);
+    }
+
+	const OdomState getState() {
 		return controller->getState();
 	}
 

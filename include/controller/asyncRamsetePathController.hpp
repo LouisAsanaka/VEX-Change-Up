@@ -7,6 +7,7 @@
 #include "trajectory/trajectory.hpp"
 #include <vector>
 #include <map>
+#include <cstdio>
 
 class AsyncRamsetePathController {
 public:
@@ -30,8 +31,10 @@ public:
      *
      * @param iwaypoints The waypoints to hit on the path.
      * @param ipathId A unique identifier to save the path with.
+     * @param storePath Whether to store the path to a CSV file.
      */
-    void generatePath(std::initializer_list<PathfinderPoint> iwaypoints, const std::string &ipathId);
+    void generatePath(std::initializer_list<PathfinderPoint> iwaypoints, const std::string &ipathId,
+                      bool storePath = false);
   
     /**
      * Removes a path and frees the memory it used. This function returns true if the path was either
@@ -55,18 +58,11 @@ public:
      * return. Any targets set while a path is being followed will be ignored.
      *
      * @param ipathId A unique identifier for the path, previously passed to `generatePath()`.
-     */
-    void setTarget(std::string ipathId);
-  
-    /**
-     * Executes a path with the given ID. If there is no path matching the ID, the method will
-     * return. Any targets set while a path is being followed will be ignored.
-     *
-     * @param ipathId A unique identifier for the path, previously passed to `generatePath()`.
+     * @param resetState Whether to reset the odometry state to the starting position.
      * @param ibackwards Whether to follow the profile backwards.
      * @param imirrored Whether to follow the profile mirrored.
      */
-    void setTarget(std::string ipathId, bool ibackwards, bool imirrored = false);
+    void setTarget(std::string ipathId, bool resetState = false, bool ibackwards = false, bool imirrored = false);
   
     /**
      * Writes the value of the controller output. This method might be automatically called in another
@@ -148,6 +144,14 @@ public:
     CrossplatformThread *getThread() const;
 
     /**
+     * Loads a path from a directory on the SD card containing path CSV files. `/usd/` is
+     * automatically prepended to `idirectory` if it is not specified.
+     *
+     * @param ipathId The path ID that the paths are stored under (and will be loaded into)
+     */
+    void loadPath(const std::string &ipathId);
+
+    /**
      * Attempts to remove a path without stopping execution. If that fails, disables the controller
      * and removes the path.
      *
@@ -178,6 +182,7 @@ protected:
     std::string currentPath{""};
     std::atomic_bool isRunning{false};
     std::atomic_int direction{1};
+    std::atomic_bool shouldResetState{false};
     std::atomic_bool mirrored{false};
     std::atomic_bool disabled{false};
     std::atomic_bool dtorCalled{false};
@@ -192,11 +197,24 @@ protected:
     virtual void executeSinglePath(const Trajectory &trajectory, 
                                    std::unique_ptr<AbstractRate> rate);
 
-    std::string
-    getPathErrorMessage(const std::vector<Waypoint> &points, const std::string &ipathId, 
-                        int length);
+    std::string getPathErrorMessage(const std::vector<Waypoint> &points, const std::string &ipathId, 
+                                    int length);
 
     QAngularSpeed convertLinearToRotational(QSpeed linear) const;
+
+    /**
+     * Joins and escapes a directory and file name
+     *
+     * @param directory The directory path, separated by forward slashes (/) and with or without a
+     * trailing slash
+     * @param filename The file name in the directory
+     * @return the fully qualified and legal path name
+     */
+    static std::string makeFilePath(const std::string &directory, const std::string &filename);
+
+    void internalStorePath(const std::string &ipathId,
+                           SegmentPtr& trajectory, int length);
+    void internalLoadPath(FILE *pathFile, const std::string &ipathId);
 
     /**
      * Reads the length of the trajectory in a thread-safe manner.

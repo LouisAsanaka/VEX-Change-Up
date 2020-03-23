@@ -124,7 +124,7 @@ public:
 
     static Pose2d fromOdomState(const OdomState& state);
 
-    std::string toString() {
+    std::string toString() const {
         std::stringstream ss;
         ss << "x: " << m_translation.x().convert(meter) << "m, ";
         ss << "y: " << m_translation.y().convert(meter) << "m, ";

@@ -1,26 +1,22 @@
 #include "controller/asyncRamsetePathController.hpp"
 #include "main.h"
+#include "util/miscUtil.hpp"
 #include "controller/util/ramseteUtil.hpp"
 #include "geometry/pose2d.hpp"
 #include "geometry/rotation2d.hpp"
 #include "kinematics/kinematics.hpp"
 #include "trajectory/trajectory.hpp"
+
 #include <algorithm>
 #include <mutex>
 #include <numeric>
 #include <iostream>
 
-// https://stackoverflow.com/a/22949351
-// [-180, 180)
-static double constrainAngle(double angle) {
-    return angle - floor(angle / (2 * M_PI) + 0.5) * (2 * M_PI);
-}
-
 AsyncRamsetePathController::AsyncRamsetePathController(
     const TimeUtil &itimeUtil,
     const PathfinderLimits &ilimits,
     const std::shared_ptr<OdomChassisController> &ichassis,
-    const RamseteConstants &iramseteConstants) 
+    const RamseteConstants &iramseteConstants)
     : logger(Logger::getDefaultLogger()),
       limits(ilimits),
       model(ichassis->getModel()),
@@ -45,7 +41,7 @@ AsyncRamsetePathController::~AsyncRamsetePathController() {
 }
 
 void AsyncRamsetePathController::generatePath(std::initializer_list<PathfinderPoint> iwaypoints,
-                                              const std::string &ipathId) {
+                                              const std::string &ipathId, bool storePath) {
     if (iwaypoints.size() == 0) {
         // No point in generating a path
         LOG_WARN_S(
@@ -98,56 +94,17 @@ void AsyncRamsetePathController::generatePath(std::initializer_list<PathfinderPo
     LOG_INFO_S("AsyncRamsetePathController: Generating path");
     pathfinder_generate(candidate.get(), trajectory.get());
 
-    std::vector<Trajectory::State> states;
-    states.reserve(length);
-
-    // Accumulate time
-    double t = 0.0; 
-    for (int i = 0; i < length; ++i) {
-        auto segment = trajectory.get()[i];
-        double angularVel;
-        if (i == length - 1) {
-            angularVel = 0.0;
-        } else {
-            auto& nextSegment = trajectory.get()[i + 1];
-            angularVel = (constrainAngle(nextSegment.heading) - constrainAngle(segment.heading))
-                / nextSegment.dt;
-        }
-        states.emplace_back(t, segment.velocity, segment.acceleration, angularVel,
-            Pose2d{
-                segment.x * meter, segment.y * meter,
-                Rotation2d{constrainAngle(segment.heading) * radian}
-            }
-        );
-        std::cout << states[i].pose.toString() << std::endl;
-        t += segment.dt;
-    }
-    std::cout << "-----------------------" << std::endl;
-    std::cout << "Length: " << length << " waypoints" << std::endl;
-    std::cout << "Duration: " << t << " s" << std::endl;
-
     // Free the old path before overwriting it
     forceRemovePath(ipathId);
 
-    paths.emplace(ipathId, states);
+    paths.emplace(ipathId, Trajectory::segmentToStates(trajectory, length));
+
     LOG_INFO("AsyncRamsetePathController: Completely done generating path " + ipathId);
     LOG_DEBUG("AsyncRamsetePathController: Path length: " + std::to_string(length));
-}
 
-std::string AsyncRamsetePathController::getPathErrorMessage(const std::vector<Waypoint> &points,
-                                                            const std::string &ipathId,
-                                                            int length) {
-    auto pointToString = [](Waypoint point) {
-        return "PathfinderPoint{x=" + std::to_string(point.x) + ", y=" + std::to_string(point.y) +
-            ", theta=" + std::to_string(point.angle) + "}";
-    };
-
-    return "The path (id " + ipathId + ", length " + std::to_string(length) +
-            ") is impossible with waypoints: " +
-            std::accumulate(std::next(points.begin()),
-                            points.end(),
-                            pointToString(points.at(0)),
-                            [&](std::string a, Waypoint b) { return a + ", " + pointToString(b); });
+    if (storePath) {
+        internalStorePath(ipathId, trajectory, length);
+    }
 }
 
 bool AsyncRamsetePathController::removePath(const std::string &ipathId) {
@@ -178,17 +135,13 @@ std::vector<std::string> AsyncRamsetePathController::getPaths() {
     return keys;
 }
 
-void AsyncRamsetePathController::setTarget(std::string ipathId) {
-    setTarget(ipathId, false);
-}
-
-void AsyncRamsetePathController::setTarget(std::string ipathId,
-                                             const bool ibackwards,
-                                             const bool imirrored) {
+void AsyncRamsetePathController::setTarget(std::string ipathId, bool resetState,
+    bool ibackwards, bool imirrored
+) {
     LOG_INFO("AsyncRamsetePathController: Set target to: " + ipathId + " (ibackwards=" +
             std::to_string(ibackwards) + ", imirrored=" + std::to_string(imirrored) + ")");
-
     currentPath = ipathId;
+    shouldResetState.store(resetState, std::memory_order_release);
     direction.store(boolToSign(!ibackwards), std::memory_order_release);
     mirrored.store(imirrored, std::memory_order_release);
     isRunning.store(true, std::memory_order_release);
@@ -305,10 +258,21 @@ void AsyncRamsetePathController::loop() {
     LOG_INFO_S("Stopped AsyncRamsetePathController task.");
 }
 
-void AsyncRamsetePathController::executeSinglePath(const Trajectory &trajectory,
+void AsyncRamsetePathController::executeSinglePath(const Trajectory& trajectory,
                                                    std::unique_ptr<AbstractRate> rate) {
     const int reversed = direction.load(std::memory_order_acquire);
     const bool followMirrored = mirrored.load(std::memory_order_acquire);
+
+    if (shouldResetState.load(std::memory_order_acquire)) {
+        std::scoped_lock lock(currentPathMutex);
+        const Pose2d& startingPose = trajectory.getStates()[0].pose;
+        chassis->setState(OdomState{
+            startingPose.translation().x(), startingPose.translation().y(),
+            startingPose.rotation().angle()
+        });
+        std::string message = "AsyncRamsetePathController: Set " + startingPose.toString() + " as initial state.";
+        LOG_INFO(message);
+    }
 
     auto timer = timeUtil.getTimer();
 
@@ -347,32 +311,22 @@ void AsyncRamsetePathController::executeSinglePath(const Trajectory &trajectory,
 
         rate->delayUntil(10_ms);
     }
+}
 
-    // auto& states = trajectory.getStates();
-    // double prevHeading = trajectory.getStates()[0].pose.rotation().angle().convert(radian);
-    // for (int i = 0; i < length && !isDisabled(); ++i) {
-    //     // const auto segDT = path.left.get()[i].dt * second;
-    //     const auto segDT = 0.01 * second;
+std::string AsyncRamsetePathController::getPathErrorMessage(const std::vector<Waypoint> &points,
+                                                            const std::string &ipathId,
+                                                            int length) {
+    auto pointToString = [](Waypoint point) {
+        return "PathfinderPoint{x=" + std::to_string(point.x) + ", y=" + std::to_string(point.y) +
+            ", theta=" + std::to_string(point.angle) + "}";
+    };
 
-    //     auto wheelSpeeds = kinematics.toWheelSpeeds(
-    //         ChassisSpeeds{}
-    //     );
-    //     const auto leftRPM = 
-    //         convertLinearToRotational(path.left.get()[i].velocity * mps).convert(rpm);
-    //     const auto rightRPM =
-    //         convertLinearToRotational(path.right.get()[i].velocity * mps).convert(rpm);
-
-    //     const double rightSpeed = rightRPM / toUnderlyingType(pair.internalGearset) * reversed;
-    //     const double leftSpeed = leftRPM / toUnderlyingType(pair.internalGearset) * reversed;
-    //     if (followMirrored) {
-    //         model->left(rightSpeed);
-    //         model->right(leftSpeed);
-    //     } else {
-    //         model->left(leftSpeed);
-    //         model->right(rightSpeed);
-    //     }
-    //     rate->delayUntil(segDT);
-    // }
+    return "The path (id " + ipathId + ", length " + std::to_string(length) +
+            ") is impossible with waypoints: " +
+            std::accumulate(std::next(points.begin()),
+                            points.end(),
+                            pointToString(points.at(0)),
+                            [&](std::string a, Waypoint b) { return a + ", " + pointToString(b); });
 }
 
 QAngularSpeed AsyncRamsetePathController::convertLinearToRotational(QSpeed linear) const {
@@ -387,6 +341,101 @@ int AsyncRamsetePathController::getTrajectoryLength(const Trajectory &trajectory
 const Pose2d& AsyncRamsetePathController::getInitialPose(const Trajectory &trajectory) {
     std::scoped_lock lock(currentPathMutex);
     return trajectory.getStates()[0].pose;
+}
+
+void AsyncRamsetePathController::loadPath(const std::string &ipathId) {
+    std::string filePath = makeFilePath("paths", ipathId + ".csv");
+    FILE *pathFile = fopen(filePath.c_str(), "r");
+
+    // Make sure we can open the file successfully
+    if (pathFile == NULL) {
+        LOG_WARN("AsyncRamsetePathController: Couldn't open file " + filePath + " for reading");
+        if (pathFile != NULL) {
+            fclose(pathFile);
+        }
+        return;
+    }
+    internalLoadPath(pathFile, ipathId);
+
+    fclose(pathFile);
+}
+
+void AsyncRamsetePathController::internalStorePath(const std::string &ipathId,
+                                                   SegmentPtr& trajectory, int length) {
+    std::string filePath = makeFilePath("paths", ipathId + ".csv");
+    FILE *pathFile = fopen(filePath.c_str(), "w");
+
+    // Make sure we can open the file successfully
+    if (pathFile == NULL) {
+        LOG_WARN("AsyncRamsetePathController: Couldn't open file " + filePath + " for writing");
+        if (pathFile != NULL) {
+            fclose(pathFile);
+        }
+        return;
+    }
+
+    pathfinder_serialize_csv(pathFile, trajectory.get(), length);
+
+    fclose(pathFile);
+}
+
+void AsyncRamsetePathController::internalLoadPath(FILE *pathFile,
+                                                  const std::string &ipathId) {
+    // Count lines in file, remove one for headers
+    int count = 0;
+    for (int c = getc(pathFile); c != EOF; c = getc(pathFile)) {
+        if (c == '\n') {
+            ++count;
+        }
+    }
+    --count;
+    rewind(pathFile);
+
+    // Allocate memory
+    SegmentPtr trajectory((Segment *)malloc(sizeof(Segment) * count), free);
+
+    pathfinder_deserialize_csv(pathFile, trajectory.get());
+
+    // Remove the old path if it exists
+    forceRemovePath(ipathId);
+    paths.emplace(ipathId, Trajectory::segmentToStates(trajectory, count));
+}
+
+std::string AsyncRamsetePathController::makeFilePath(const std::string &directory,
+                                                     const std::string &filename) {
+    std::string path(directory);
+
+    // Checks first substring
+    if (path.rfind("/usd", 0) == std::string::npos) {
+        if (path.rfind("usd", 0) != std::string::npos) {
+            // There's a usd, but no beginning slash
+            path.insert(0, "/"); // We just need a slash
+        } else {               // There's nothing at all
+            if (path.front() == '/') {
+                // Don't double up on slashes
+                path.insert(0, "/usd");
+            } else {
+                path.insert(0, "/usd/");
+            }
+        }
+    }
+
+    // Add trailing slash if there isn't one
+    if (path.back() != '/') {
+        path.append("/");
+    }
+    std::string filenameCopy(filename);
+    // Remove restricted characters from filename
+    static const std::string illegalChars = "\\/:?*\"<>|";
+    for (auto it = filenameCopy.begin(); it < filenameCopy.end(); it++) {
+        if (illegalChars.rfind(*it) != std::string::npos) {
+            it = filenameCopy.erase(it);
+        }
+    }
+
+    path.append(filenameCopy);
+
+    return path;
 }
 
 void AsyncRamsetePathController::forceRemovePath(const std::string &ipathId) {

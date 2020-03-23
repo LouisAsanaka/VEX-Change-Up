@@ -32,6 +32,10 @@ public:
     int getLength() const { return states.size(); }
 
     State sample(double t) const;
+
+    using SegmentPtr = std::unique_ptr<Segment, void (*)(void *)>;
+
+    static std::vector<Trajectory::State> segmentToStates(SegmentPtr& segment, int length);
 private:
     std::vector<State> states;
     double totalTime;

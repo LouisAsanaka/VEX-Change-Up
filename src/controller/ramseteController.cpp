@@ -39,8 +39,7 @@ ChassisSpeeds RamseteController::calculate(const Pose2d& currentPose, const Pose
         2.0 * zeta * std::sqrt(std::pow(omegaRef, 2) + b * std::pow(vRef, 2));
 
     double v{vRef * poseError.rotation().cos() + k * eX};
-    double omega{omegaRef + k * eTheta +
-        b * vRef * sinc(eTheta) * eY};
+    double omega{omegaRef + k * eTheta + b * vRef * sinc(eTheta) * eY};
     return ChassisSpeeds{v * mps, 0_mps, omega * radps};
 }
 

@@ -1,5 +1,6 @@
 #include "trajectory/trajectory.hpp"
 #include "main.h"
+#include "util/miscUtil.hpp"
 #include <vector>
 
 Trajectory::Trajectory(const std::vector<State>& list) : states(list) {
@@ -94,4 +95,35 @@ Trajectory::State Trajectory::sample(double t) const {
     // Interpolate between the two states for the state that we want.
     return interpolate(prevSample, sample,
         (t - prevSample.t) / (sample.t - prevSample.t));
+}
+
+std::vector<Trajectory::State> Trajectory::segmentToStates(SegmentPtr& traj, int length) {
+    std::vector<Trajectory::State> states;
+    states.reserve(length);
+
+    // Accumulate time
+    double t = 0.0; 
+    for (int i = 0; i < length; ++i) {
+        auto segment = traj.get()[i];
+        double angularVel;
+        if (i == length - 1) {
+            angularVel = 0.0;
+        } else {
+            auto& nextSegment = traj.get()[i + 1];
+            angularVel = (constrainAngle(nextSegment.heading) - constrainAngle(segment.heading))
+                / nextSegment.dt;
+        }
+        states.emplace_back(t, segment.velocity, segment.acceleration, angularVel,
+            Pose2d{
+                segment.x * meter, segment.y * meter,
+                Rotation2d{constrainAngle(segment.heading) * radian}
+            }
+        );
+        // std::cout << states[i].pose.toString() << std::endl;
+        t += segment.dt;
+    }
+    std::cout << "-----------------------" << std::endl;
+    std::cout << "Length: " << length << " waypoints" << std::endl;
+    std::cout << "Duration: " << t << " s" << std::endl;
+    return states;
 }
