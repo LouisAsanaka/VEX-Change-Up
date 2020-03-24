@@ -1,6 +1,7 @@
 {
     "cquery.cacheDirectory": "${workspaceFolder}/.vscode/cquery_cached_index/",
     "cquery.launch.command": "C:/Program Files/PROS/cquery/cquery.exe",
+    "ccls.cache.directory": "${workspaceFolder}/.vscode/.ccls-cache/",
 
     // Enable cquery semantic highlighting
     // "cquery.highlighting.enabled.types": true,
