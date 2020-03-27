@@ -1,7 +1,7 @@
 #pragma once
 
 #include "main.h"
-#include "geometry/pose2d.hpp"
+#include "libraidzero/geometry/pose2d.hpp"
 #include <vector>
 
 #define lerp(fromV, toV, iFrac) fromV + (toV - fromV) * iFrac
@@ -35,7 +35,7 @@ public:
 
     using SegmentPtr = std::unique_ptr<Segment, void (*)(void *)>;
 
-    static std::vector<Trajectory::State> segmentToStates(SegmentPtr& segment, int length);
+    static std::vector<Trajectory::State> segmentToStates(const SegmentPtr& segment, int length);
 private:
     std::vector<State> states;
     double totalTime;

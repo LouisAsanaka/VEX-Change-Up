@@ -1,7 +1,7 @@
 #pragma once
 
 #include "main.h"
-#include "controller/asyncRamsetePathController.hpp"
+#include "libraidzero/controller/asyncRamsetePathController.hpp"
 
 namespace robot::drive {
 

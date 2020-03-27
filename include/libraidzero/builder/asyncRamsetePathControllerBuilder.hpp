@@ -1,8 +1,8 @@
 #pragma once
 
 #include "main.h"
-#include "controller/asyncRamsetePathController.hpp"
-#include "controller/util/ramseteUtil.hpp"
+#include "libraidzero/controller/asyncRamsetePathController.hpp"
+#include "libraidzero/controller/util/ramseteUtil.hpp"
 
 class AsyncRamsetePathControllerBuilder {
 public:

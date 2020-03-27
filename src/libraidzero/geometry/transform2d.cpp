@@ -1,5 +1,5 @@
-#include "geometry/transform2d.hpp"
-#include "geometry/pose2d.hpp"
+#include "libraidzero/geometry/transform2d.hpp"
+#include "libraidzero/geometry/pose2d.hpp"
 
 Transform2d::Transform2d(Pose2d initial, Pose2d final) {
     // We are rotating the difference between the translations

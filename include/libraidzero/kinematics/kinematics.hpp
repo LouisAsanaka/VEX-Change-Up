@@ -1,8 +1,8 @@
 #pragma once
 
 #include "main.h"
-#include "kinematics/chassisSpeeds.hpp"
-#include "kinematics/driveWheelSpeeds.hpp"
+#include "libraidzero/kinematics/chassisSpeeds.hpp"
+#include "libraidzero/kinematics/driveWheelSpeeds.hpp"
 
 class Kinematics {
 public:
@@ -23,15 +23,15 @@ public:
     /**
      * Returns left and right component velocities from a chassis speed using
      * inverse kinematics.
-     * NOTE: Omega is + when clockwise
+     * NOTE: +omega is counter-clockwise
      *
      * @param chassisSpeeds The linear and angular (dx and dtheta) components that
      * represent the chassis' speed.
      * @return The left and right velocities.
      */
     constexpr DriveWheelSpeeds toWheelSpeeds(const ChassisSpeeds& chassisSpeeds) const {
-        return {chassisSpeeds.vx + wheelTrack / 2 * chassisSpeeds.omega / 1_rad,
-                chassisSpeeds.vx - wheelTrack / 2 * chassisSpeeds.omega / 1_rad};
+        return {chassisSpeeds.vx - wheelTrack / 2 * chassisSpeeds.omega / 1_rad,
+                chassisSpeeds.vx + wheelTrack / 2 * chassisSpeeds.omega / 1_rad};
     }
 
     QLength wheelTrack;

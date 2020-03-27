@@ -1,8 +1,7 @@
 #pragma once
 
-
-#include "geometry/rotation2d.hpp"
-#include "geometry/translation2d.hpp"
+#include "libraidzero/geometry/rotation2d.hpp"
+#include "libraidzero/geometry/translation2d.hpp"
 
 class Pose2d;
 

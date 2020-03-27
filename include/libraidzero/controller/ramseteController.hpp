@@ -1,8 +1,8 @@
 #pragma once
 
 #include "main.h"
-#include "kinematics/chassisSpeeds.hpp"
-#include "geometry/pose2d.hpp"
+#include "libraidzero/kinematics/chassisSpeeds.hpp"
+#include "libraidzero/geometry/pose2d.hpp"
 
 class RamseteController {
 public:

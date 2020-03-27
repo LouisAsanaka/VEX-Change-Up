@@ -1,6 +1,6 @@
-#include "trajectory/trajectory.hpp"
+#include "libraidzero/trajectory/trajectory.hpp"
 #include "main.h"
-#include "util/miscUtil.hpp"
+#include "libraidzero/util/miscUtil.hpp"
 #include <vector>
 
 Trajectory::Trajectory(const std::vector<State>& list) : states(list) {
@@ -97,7 +97,7 @@ Trajectory::State Trajectory::sample(double t) const {
         (t - prevSample.t) / (sample.t - prevSample.t));
 }
 
-std::vector<Trajectory::State> Trajectory::segmentToStates(SegmentPtr& traj, int length) {
+std::vector<Trajectory::State> Trajectory::segmentToStates(const SegmentPtr& traj, int length) {
     std::vector<Trajectory::State> states;
     states.reserve(length);
 

@@ -1,11 +1,12 @@
-#include "controller/asyncRamsetePathController.hpp"
+#include "libraidzero/controller/asyncRamsetePathController.hpp"
 #include "main.h"
-#include "util/miscUtil.hpp"
-#include "controller/util/ramseteUtil.hpp"
-#include "geometry/pose2d.hpp"
-#include "geometry/rotation2d.hpp"
-#include "kinematics/kinematics.hpp"
-#include "trajectory/trajectory.hpp"
+#include "libraidzero/util/miscUtil.hpp"
+#include "libraidzero/controller/util/ramseteUtil.hpp"
+#include "libraidzero/geometry/pose2d.hpp"
+#include "libraidzero/geometry/rotation2d.hpp"
+#include "libraidzero/kinematics/kinematics.hpp"
+#include "libraidzero/trajectory/trajectory.hpp"
+#include "okapi/api/util/logging.hpp"
 
 #include <algorithm>
 #include <mutex>
@@ -285,12 +286,14 @@ void AsyncRamsetePathController::executeSinglePath(const Trajectory& trajectory,
 
         Trajectory::State sampled = trajectory.sample(timer->getDtFromStart().convert(second));
 
+        auto odomPose = Pose2d::fromOdomState(chassis->getState());
         auto wheelSpeeds = kinematics.toWheelSpeeds(
             ramseteController->calculate(
-                Pose2d::fromOdomState(chassis->getState()),
-                sampled.pose, sampled.vel * mps, sampled.angularVel * radps
+                odomPose, sampled.pose, sampled.vel * mps, sampled.angularVel * radps
             )
         );
+        std::string message = "AsyncRamsetePathController: Odom Pose=" + odomPose.toString() + ", Target Pose=" + sampled.pose.toString();
+        LOG_DEBUG(message);
 
         const auto leftRPM = convertLinearToRotational(wheelSpeeds.left).convert(rpm);
         const auto rightRPM = convertLinearToRotational(wheelSpeeds.right).convert(rpm);

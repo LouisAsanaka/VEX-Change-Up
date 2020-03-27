@@ -1,8 +1,8 @@
 #include "robot/drive.hpp"
 #include "main.h"
 #include "constants.hpp"
-#include "controller/asyncRamsetePathController.hpp"
-#include "builder/asyncRamsetePathControllerBuilder.hpp"
+#include "libraidzero/controller/asyncRamsetePathController.hpp"
+#include "libraidzero/builder/asyncRamsetePathControllerBuilder.hpp"
 
 namespace robot::drive {
 

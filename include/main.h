@@ -78,6 +78,7 @@ void opcontrol(void);
 #include <iostream>
 #include <memory>
 #include <cmath>
+#include <string>
 #endif
 
 #endif  // _PROS_MAIN_H_

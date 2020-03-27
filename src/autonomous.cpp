@@ -4,8 +4,6 @@
 #include "robot.hpp"
 
 #include <exception>
-#include <cmath>
-#include <string>
 
 void autonomous() {
     robot::drive::generatePath({

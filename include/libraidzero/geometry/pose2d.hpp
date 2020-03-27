@@ -1,8 +1,8 @@
 #pragma once
 
 #include "main.h"
-#include "geometry/transform2d.hpp"
-#include "geometry/translation2d.hpp"
+#include "libraidzero/geometry/transform2d.hpp"
+#include "libraidzero/geometry/translation2d.hpp"
 #include <sstream>
 
 /**

@@ -1,6 +1,6 @@
-#include "builder/asyncRamsetePathControllerBuilder.hpp"
+#include "libraidzero/builder/asyncRamsetePathControllerBuilder.hpp"
 #include "main.h"
-#include "controller/asyncRamsetePathController.hpp"
+#include "libraidzero/controller/asyncRamsetePathController.hpp"
 
 AsyncRamsetePathControllerBuilder::AsyncRamsetePathControllerBuilder(
     const std::shared_ptr<Logger> &ilogger)

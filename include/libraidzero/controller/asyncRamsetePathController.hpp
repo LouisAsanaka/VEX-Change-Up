@@ -1,10 +1,10 @@
 #pragma once
 
 #include "main.h"
-#include "controller/ramseteController.hpp"
-#include "controller/util/ramseteUtil.hpp"
-#include "kinematics/kinematics.hpp"
-#include "trajectory/trajectory.hpp"
+#include "libraidzero/controller/ramseteController.hpp"
+#include "libraidzero/controller/util/ramseteUtil.hpp"
+#include "libraidzero/kinematics/kinematics.hpp"
+#include "libraidzero/trajectory/trajectory.hpp"
 #include <vector>
 #include <map>
 #include <cstdio>

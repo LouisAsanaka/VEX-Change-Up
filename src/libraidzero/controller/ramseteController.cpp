@@ -1,6 +1,6 @@
-#include "controller/ramseteController.hpp"
+#include "libraidzero/controller/ramseteController.hpp"
 #include "main.h"
-#include "kinematics/chassisSpeeds.hpp"
+#include "libraidzero/kinematics/chassisSpeeds.hpp"
 #include <numeric>
 
 /**
