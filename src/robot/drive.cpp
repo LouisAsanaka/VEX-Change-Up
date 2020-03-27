@@ -39,6 +39,7 @@ namespace robot::drive {
 			.withLimits({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, DRIVE_MAX_JERK})
 			.withOutput(controller)
 			.buildRamsetePathController();
+        pathFollower->flipDisable(true);
 		model = controller->getModel();
 		model->setBrakeMode(AbstractMotor::brakeMode::brake);
 	}
@@ -50,6 +51,7 @@ namespace robot::drive {
 
     void followPath(const std::string& ipathId, bool resetState, bool ibackwards, bool imirrored) {
         pathFollower->setTarget(ipathId, resetState, ibackwards, imirrored);
+        pathFollower->flipDisable(false);
     }
 
 	const OdomState getState() {
