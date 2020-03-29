@@ -16,6 +16,7 @@
 using namespace okapi;
 
 class AdvancedOdomChassisController : public OdomChassisController {
+    typedef AdvancedChassisController::TurnType TurnType;
 public:
     /**
      * Odometry based chassis controller that moves using a separately constructed chassis controller.
@@ -109,7 +110,17 @@ public:
     /**
      * This delegates to the input AdvancedChassisController.
      */
+    void turnAngle(QAngle idegTarget, TurnType iturnType);
+
+    /**
+     * This delegates to the input AdvancedChassisController.
+     */
     void turnRaw(double idegTarget) override;
+
+    /**
+     * This delegates to the input AdvancedChassisController.
+     */
+    void turnRaw(double idegTarget, TurnType iturnType);
 
     /**
      * This delegates to the input AdvancedChassisController.
@@ -119,7 +130,17 @@ public:
     /**
      * This delegates to the input AdvancedChassisController.
      */
+    void turnAngleAsync(QAngle idegTarget, TurnType iturnType);
+
+    /**
+     * This delegates to the input AdvancedChassisController.
+     */
     void turnRawAsync(double idegTarget) override;
+
+    /**
+     * This delegates to the input AdvancedChassisController.
+     */
+    void turnRawAsync(double idegTarget, TurnType iturnType);
 
     /**
      * This delegates to the input AdvancedChassisController.

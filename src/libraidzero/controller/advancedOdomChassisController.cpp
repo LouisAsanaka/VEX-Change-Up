@@ -74,7 +74,7 @@ void AdvancedOdomChassisController::turnToPoint(const Point &ipoint) {
     waitForOdomTask();
 
     const auto angle = OdomMath::computeAngleToPoint(ipoint.inFT(defaultStateMode),
-                                                   odom->getState(StateMode::FRAME_TRANSFORMATION));
+                                                     odom->getState(StateMode::FRAME_TRANSFORMATION));
 
     LOG_INFO("AdvancedOdomChassisController: Computed angle of " +
            std::to_string(angle.convert(degree)) + " degrees");
@@ -121,16 +121,32 @@ void AdvancedOdomChassisController::turnAngle(QAngle idegTarget) {
     controller->turnAngle(idegTarget);
 }
 
+void AdvancedOdomChassisController::turnAngle(QAngle idegTarget, TurnType iturnType) {
+    controller->turnAngle(idegTarget, iturnType);
+}
+
 void AdvancedOdomChassisController::turnRaw(double idegTarget) {
     controller->turnRaw(idegTarget);
+}
+
+void AdvancedOdomChassisController::turnRaw(double idegTarget, TurnType iturnType) {
+    controller->turnRaw(idegTarget, iturnType);
 }
 
 void AdvancedOdomChassisController::turnAngleAsync(QAngle idegTarget) {
     controller->turnAngleAsync(idegTarget);
 }
 
+void AdvancedOdomChassisController::turnAngleAsync(QAngle idegTarget, TurnType iturnType) {
+    controller->turnAngleAsync(idegTarget, iturnType);
+}
+
 void AdvancedOdomChassisController::turnRawAsync(double idegTarget) {
     controller->turnRawAsync(idegTarget);
+}
+
+void AdvancedOdomChassisController::turnRawAsync(double idegTarget, TurnType iturnType) {
+    controller->turnRawAsync(idegTarget, iturnType);
 }
 
 void AdvancedOdomChassisController::setTurnsMirrored(bool ishouldMirror) {

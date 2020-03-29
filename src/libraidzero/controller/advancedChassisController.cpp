@@ -90,12 +90,29 @@ void AdvancedChassisController::loop() {
 
                 turnPid->step(angleChange);
 
-                if (velocityMode) {
-                    chassisModel->driveVector(0, turnPid->getOutput());
-                } else {
-                    chassisModel->driveVectorVoltage(0, turnPid->getOutput());
+                switch (turnType) {
+                    case TurnType::pointTurn:
+                        if (velocityMode) {
+                            chassisModel->driveVector(0, turnPid->getOutput());
+                        } else {
+                            chassisModel->driveVectorVoltage(0, turnPid->getOutput());
+                        }
+                        break;
+                    case TurnType::leftPivot:
+                        if (velocityMode) {
+                            chassisModel->right(-turnPid->getOutput());
+                        } else {
+                            chassisModel->tank(0, -turnPid->getOutput());
+                        }
+                        break;
+                    case TurnType::rightPivot:
+                        if (velocityMode) {
+                            chassisModel->left(turnPid->getOutput());
+                        } else {
+                            chassisModel->tank(turnPid->getOutput(), 0);
+                        }
+                        break;
                 }
-
                 break;
 
             default:
@@ -156,6 +173,10 @@ void AdvancedChassisController::moveRaw(const double itarget) {
 }
 
 void AdvancedChassisController::turnAngleAsync(const QAngle idegTarget) {
+    turnAngleAsync(idegTarget, TurnType::pointTurn);
+}
+
+void AdvancedChassisController::turnAngleAsync(const QAngle idegTarget, const TurnType iturnType) {
     LOG_INFO("AdvancedChassisController: turning " + std::to_string(idegTarget.convert(degree)) +
            " degrees");
 
@@ -164,6 +185,7 @@ void AdvancedChassisController::turnAngleAsync(const QAngle idegTarget) {
     distancePid->flipDisable(true);
     anglePid->flipDisable(true);
     mode = angle;
+    turnType = iturnType;
 
     const double newTarget =
         idegTarget.convert(degree) * scales.turn * gearsetRatioPair.ratio * boolToSign(normalTurns);
@@ -177,18 +199,31 @@ void AdvancedChassisController::turnAngleAsync(const QAngle idegTarget) {
 }
 
 void AdvancedChassisController::turnRawAsync(const double idegTarget) {
+    turnRawAsync(idegTarget, TurnType::pointTurn);
+}
+
+void AdvancedChassisController::turnRawAsync(const double idegTarget, const TurnType iturnType) {
     // Divide by turnScale so the final result turns back into motor ticks
-    turnAngleAsync((idegTarget / scales.turn) * degree);
+    turnAngleAsync((idegTarget / scales.turn) * degree, iturnType);
 }
 
 void AdvancedChassisController::turnAngle(const QAngle idegTarget) {
-    turnAngleAsync(idegTarget);
+    turnAngle(idegTarget, TurnType::pointTurn);
+}
+
+void AdvancedChassisController::turnAngle(const QAngle idegTarget, const TurnType iturnType) {
+    turnAngleAsync(idegTarget, iturnType);
     waitUntilSettled();
 }
 
 void AdvancedChassisController::turnRaw(const double idegTarget) {
     // Divide by turnScale so the final result turns back into motor ticks
-    turnAngle((idegTarget / scales.turn) * degree);
+    turnRaw(idegTarget, TurnType::pointTurn);
+}
+
+void AdvancedChassisController::turnRaw(const double idegTarget, const TurnType iturnType) {
+    // Divide by turnScale so the final result turns back into motor ticks
+    turnAngle((idegTarget / scales.turn) * degree, iturnType);
 }
 
 void AdvancedChassisController::setTurnsMirrored(const bool ishouldMirror) {

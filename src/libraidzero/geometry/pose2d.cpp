@@ -42,5 +42,5 @@ Pose2d Pose2d::relativeTo(const Pose2d& other) const {
 }
 
 Pose2d Pose2d::fromOdomState(const OdomState& state) {
-    return {Translation2d{state.x, state.y}, Rotation2d{state.theta}};
+    return {Translation2d{state.x, state.y}, Rotation2d{-1 * state.theta}};
 }

@@ -20,6 +20,10 @@ using namespace okapi;
 
 class AdvancedChassisController : public ChassisController {
 public:
+    enum class TurnType {
+        leftPivot, pointTurn, rightPivot
+    };
+
     /**
      * ChassisController using PID control. Puts the motors into encoder count units. Throws a
      * `std::invalid_argument` exception if the gear ratio is zero.
@@ -105,6 +109,19 @@ public:
     void turnAngle(QAngle idegTarget) override;
 
     /**
+     * Turns the robot clockwise (using closed-loop control).
+     *
+     * ```cpp
+     * // Left pivot turn 90 degrees clockwise
+     * chassis->turnAngle(90_deg, TurnType::leftPivot);
+     * ```
+     *
+     * @param idegTarget angle to turn for
+     * @param iturnType type of turn to execute
+     */
+    void turnAngle(QAngle idegTarget, TurnType iturnType);
+
+    /**
      * Turns the robot clockwise in place (using closed-loop control).
      *
      * ```cpp
@@ -117,6 +134,19 @@ public:
     void turnRaw(double idegTarget) override;
 
     /**
+     * Turns the robot clockwise (using closed-loop control).
+     *
+     * ```cpp
+     * // Turn clockwise by spinning the left motor 200 degrees
+     * chassis->turnRaw(200, TurnType::leftPivot);
+     * ```
+     *
+     * @param idegTarget angle to turn for in motor degrees
+     * @param iturnType type of turn to execute
+     */
+    void turnRaw(double idegTarget, TurnType iturnType);
+
+    /**
      * Sets the target angle for the robot to turn clockwise in place (using closed-loop control).
      *
      * @param idegTarget angle to turn for
@@ -124,11 +154,27 @@ public:
     void turnAngleAsync(QAngle idegTarget) override;
 
     /**
+     * Sets the target angle for the robot to turn clockwise (using closed-loop control).
+     *
+     * @param idegTarget angle to turn for
+     * @param iturnType type of turn to execute
+     */
+    void turnAngleAsync(QAngle idegTarget, TurnType iturnType);
+
+    /**
      * Sets the target angle for the robot to turn clockwise in place (using closed-loop control).
      *
      * @param idegTarget angle to turn for in motor degrees
      */
     void turnRawAsync(double idegTarget) override;
+
+    /**
+     * Sets the target angle for the robot to turn clockwise in place (using closed-loop control).
+     *
+     * @param idegTarget angle to turn for in motor degrees
+     * @param iturnType type of turn to execute
+     */
+    void turnRawAsync(double idegTarget, TurnType iturnType);
 
     /**
      * Sets whether turns should be mirrored.
@@ -177,8 +223,8 @@ public:
      * @param iangleGains The angle controller gains.
      */
     void setGains(const IterativePosPIDController::Gains &idistanceGains,
-                                const IterativePosPIDController::Gains &iturnGains,
-                                const IterativePosPIDController::Gains &iangleGains);
+                  const IterativePosPIDController::Gains &iturnGains,
+                  const IterativePosPIDController::Gains &iangleGains);
 
     /**
      * Gets the current controller gains.
@@ -186,8 +232,8 @@ public:
      * @return The current controller gains in the order: distance, turn, angle.
      */
     std::tuple<IterativePosPIDController::Gains,
-             IterativePosPIDController::Gains,
-             IterativePosPIDController::Gains>
+               IterativePosPIDController::Gains,
+               IterativePosPIDController::Gains>
     getGains() const;
 
     /**
@@ -233,7 +279,8 @@ public:
 
 protected:
     std::shared_ptr<Logger> logger;
-    bool normalTurns{true};
+    bool normalTurns{true}; // true makes turns clockwise by default
+    TurnType turnType{TurnType::pointTurn};
     std::shared_ptr<ChassisModel> chassisModel;
     TimeUtil timeUtil;
     std::unique_ptr<IterativePosPIDController> distancePid;
