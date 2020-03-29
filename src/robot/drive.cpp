@@ -1,18 +1,20 @@
 #include "robot/drive.hpp"
 #include "main.h"
 #include "constants.hpp"
+#include "libraidzero/controller/advancedOdomChassisController.hpp"
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
 #include "libraidzero/builder/asyncRamsetePathControllerBuilder.hpp"
+#include "libraidzero/builder/advancedChassisControllerBuilder.hpp"
 
 namespace robot::drive {
 
-	std::shared_ptr<OdomChassisController> controller;
+	std::shared_ptr<AdvancedOdomChassisController> controller;
     std::shared_ptr<AsyncRamsetePathController> pathFollower;
     std::shared_ptr<ChassisModel> model;
 
 	void init() {
-        controller = std::static_pointer_cast<OdomChassisController>(
-            ChassisControllerBuilder()
+        controller = std::static_pointer_cast<AdvancedOdomChassisController>(
+            AdvancedChassisControllerBuilder()
                 .withMotors({9, 10}, {-1, -2})
                 .withDimensions(AbstractMotor::gearset::green, {
                     {DRIVE_WHEEL_DIAMETER, DRIVE_WHEEL_TRACK}, 
