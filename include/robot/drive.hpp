@@ -3,11 +3,13 @@
 #include "main.h"
 #include "libraidzero/controller/advancedOdomChassisController.hpp"
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
+#include "libraidzero/controller/asyncAdvancedProfileController.hpp"
 
 namespace robot::drive {
 
 	extern std::shared_ptr<AdvancedOdomChassisController> controller;
     extern std::shared_ptr<AsyncRamsetePathController> pathFollower;
+    extern std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
 	extern std::shared_ptr<ChassisModel> model;
 
 	void init();

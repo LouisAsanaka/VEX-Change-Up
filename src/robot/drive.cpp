@@ -2,7 +2,9 @@
 #include "main.h"
 #include "constants.hpp"
 #include "libraidzero/controller/advancedOdomChassisController.hpp"
+#include "libraidzero/controller/asyncAdvancedProfileController.hpp"
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
+#include "libraidzero/builder/asyncAdvancedProfileControllerBuilder.hpp"
 #include "libraidzero/builder/asyncRamsetePathControllerBuilder.hpp"
 #include "libraidzero/builder/advancedChassisControllerBuilder.hpp"
 
@@ -10,6 +12,7 @@ namespace robot::drive {
 
 	std::shared_ptr<AdvancedOdomChassisController> controller;
     std::shared_ptr<AsyncRamsetePathController> pathFollower;
+    std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
     std::shared_ptr<ChassisModel> model;
 
 	void init() {
@@ -42,6 +45,13 @@ namespace robot::drive {
 			.withOutput(controller)
 			.buildRamsetePathController();
         pathFollower->flipDisable(true);
+
+        profileFollower = AsyncAdvancedProfileControllerBuilder()
+            .withConfig({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, 0.0})
+            .withOutput(controller)
+            .buildAdvancedProfileController();
+        profileFollower->flipDisable(true);
+
 		model = controller->getModel();
 		model->setBrakeMode(AbstractMotor::brakeMode::brake);
 	}

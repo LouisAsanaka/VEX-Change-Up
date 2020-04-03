@@ -10,7 +10,7 @@
 
 planner::MotionProfile planner::ProfilePlanner::generatePath(
     const std::vector<Waypoint>& waypoints,
-    double cruiseVelocity, double targetAcceleration, double initialVelocity) 
+    const PlannerConfig& config)
 {
     auto queryData = getQueryData(waypoints);
     auto splines = calculateSplines(waypoints, queryData);
@@ -22,7 +22,8 @@ planner::MotionProfile planner::ProfilePlanner::generatePath(
         profile.pathPoints.emplace_back();
     }
 
-    calculatePathPoints(profile, cruiseVelocity, targetAcceleration, initialVelocity,
+    calculatePathPoints(profile,
+        config.cruiseVelocity, config.targetAcceleration, config.initialVelocity,
         splines, queryData);
 
     auto xQueries = queryCoord(splines.x, queryData);

@@ -49,14 +49,11 @@ namespace planner {
          * trapezoid.
          *
          * @param waypoints points that the path should pass through
-         * @param cruiseVelocity the target constant cruise velocity of the robot in m/s
-         * @param targetAcceleration the target constant acceleration (and deceleration) of the robot 
-         * in m/s^2
-         * @param initialVelocity the initial velocity of the robot in m/s
+         * @param config configuration for the profile
          * @return an array of points on the path
          */
         static planner::MotionProfile generatePath(const std::vector<Waypoint>& waypoints,
-            double cruiseVelocity, double targetAcceleration, double initialVelocity = 0.0);
+            const PlannerConfig& config);
 
         static QueryData getQueryData(const std::vector<Waypoint>& waypoints);
 
