@@ -4,8 +4,8 @@
 #include "libraidzero/controller/asyncAdvancedProfileController.hpp"
 
 AsyncAdvancedProfileControllerBuilder::AsyncAdvancedProfileControllerBuilder(
-    const std::shared_ptr<Logger> &ilogger)
-    : logger(ilogger) {
+    std::shared_ptr<Logger> ilogger)
+    : logger(std::move(ilogger)) {
 }
 
 AsyncAdvancedProfileControllerBuilder &AsyncAdvancedProfileControllerBuilder::withOutput(

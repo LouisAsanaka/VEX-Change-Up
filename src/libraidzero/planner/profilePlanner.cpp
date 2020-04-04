@@ -43,9 +43,9 @@ planner::ProfilePlanner::QueryData planner::ProfilePlanner::getQueryData(
     auto distances = calculateCumulativeDistances(waypoints);
     double totalDistance = distances.back();
     auto queryData = QueryData{
-        std::move(distances),
+        distances,
         totalDistance,
-        (int) std::ceil(totalDistance / QUERY_INTERVAL) + 1
+        static_cast<int>(std::ceil(totalDistance / QUERY_INTERVAL)) + 1
     };
     //std::cout << "Using " << queryData.queryCount << " points for generation." << std::endl;
     return queryData;

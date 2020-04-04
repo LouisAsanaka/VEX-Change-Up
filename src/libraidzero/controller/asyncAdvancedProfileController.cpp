@@ -18,19 +18,19 @@
 #include <numeric>
 
 AsyncAdvancedProfileController::AsyncAdvancedProfileController(
-    const TimeUtil &itimeUtil,
-    const planner::PlannerConfig &iconfig,
-    const std::shared_ptr<ChassisModel> &imodel,
+    TimeUtil itimeUtil,
+    const planner::PlannerConfig iconfig,
+    std::shared_ptr<ChassisModel> imodel,
     const ChassisScales &iscales,
     const AbstractMotor::GearsetRatioPair &ipair,
-    const std::shared_ptr<Logger> &ilogger)
-    : logger(ilogger),
+    std::shared_ptr<Logger> ilogger)
+    : logger(std::move(ilogger)),
       config(iconfig),
-      model(imodel),
+      model(std::move(imodel)),
       scales(iscales),
       kinematics(iscales),
       pair(ipair),
-      timeUtil(itimeUtil) {
+      timeUtil(std::move(itimeUtil)) {
     if (ipair.ratio == 0) {
         std::string msg("AsyncAdvancedProfileController: The gear ratio cannot be zero! Check if you are "
                         "using integer division.");
@@ -127,7 +127,7 @@ void AsyncAdvancedProfileController::setTarget(std::string ipathId) {
     setTarget(ipathId, false);
 }
 
-void AsyncAdvancedProfileController::setTarget(std::string ipathId,
+void AsyncAdvancedProfileController::setTarget(const std::string ipathId,
                                                const bool ibackwards,
                                                const bool imirrored) {
     LOG_INFO("AsyncAdvancedProfileController: Set target to: " + ipathId + " (ibackwards=" +
@@ -236,7 +236,7 @@ QAngularSpeed AsyncAdvancedProfileController::convertLinearToRotational(QSpeed l
 }
 
 void AsyncAdvancedProfileController::trampoline(void *context) {
-    if (context) {
+    if (context != nullptr) {
         static_cast<AsyncAdvancedProfileController *>(context)->loop();
     }
 }
@@ -310,11 +310,11 @@ bool AsyncAdvancedProfileController::isDisabled() const {
 void AsyncAdvancedProfileController::tarePosition() {
 }
 
-void AsyncAdvancedProfileController::setMaxVelocity(std::int32_t) {
+void AsyncAdvancedProfileController::setMaxVelocity(std::int32_t imaxVelocity) {
 }
 
 void AsyncAdvancedProfileController::startThread() {
-    if (!task) {
+    if (task == nullptr) {
         task = new CrossplatformThread(trampoline, this, "AsyncAdvancedProfileController");
     }
 }
@@ -425,7 +425,7 @@ void AsyncAdvancedProfileController::internalLoadPath(FILE *leftPathFile,
 }
 
 std::string AsyncAdvancedProfileController::makeFilePath(const std::string &directory,
-                                                       const std::string &filename) {
+                                                         const std::string &filename) {
     /*std::string path(directory);
 
     // Checks first substring
@@ -459,6 +459,7 @@ std::string AsyncAdvancedProfileController::makeFilePath(const std::string &dire
     path.append(filenameCopy);
 
     return path;*/
+    return "";
 }
 
 void AsyncAdvancedProfileController::forceRemovePath(const std::string &ipathId) {

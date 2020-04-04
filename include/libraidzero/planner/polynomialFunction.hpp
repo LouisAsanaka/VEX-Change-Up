@@ -35,7 +35,7 @@ namespace planner {
          */
         static std::vector<double> differentiate(const std::vector<double>& coefficients);
     public:
-        PolynomialFunction(const std::vector<double> c);
+        PolynomialFunction(std::vector<double> c);
 
         /**
          * Compute the value of the function for the given argument.

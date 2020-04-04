@@ -66,7 +66,7 @@ namespace robot::drive {
         pathFollower->flipDisable(false);
     }
 
-	const OdomState getState() {
+	OdomState getState() {
 		return controller->getState();
 	}
 

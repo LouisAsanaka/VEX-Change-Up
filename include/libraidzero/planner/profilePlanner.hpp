@@ -4,6 +4,7 @@
 #include "libraidzero/planner/hermiteInterpolator.hpp"
 #include "libraidzero/planner/polynomialFunction.hpp"
 
+#include <utility>
 #include <vector>
 
 namespace planner {
@@ -18,13 +19,13 @@ namespace planner {
         };
 
         struct QueryData {
-            const std::vector<double> cumulativeWaypointDistances;
+            std::vector<double> cumulativeWaypointDistances;
             double totalWaypointDistance;
             int queryCount;
 
-            QueryData(const std::vector<double>&& cumulativeWaypointDistances, 
+            QueryData(std::vector<double> cumulativeWaypointDistances, 
                 double totalWaypointDistance, int queryCount) :
-                cumulativeWaypointDistances{cumulativeWaypointDistances},
+                cumulativeWaypointDistances{std::move(cumulativeWaypointDistances)},
                 totalWaypointDistance{totalWaypointDistance},
                 queryCount{queryCount} {}
         };

@@ -35,12 +35,12 @@ public:
      * @param ipair The gearset.
      * @param ilogger The logger this instance will log to.
      */
-    AsyncAdvancedProfileController(const TimeUtil &itimeUtil,
-                                   const planner::PlannerConfig &iconfig,
-                                   const std::shared_ptr<ChassisModel> &imodel,
+    AsyncAdvancedProfileController(TimeUtil itimeUtil,
+                                   planner::PlannerConfig iconfig,
+                                   std::shared_ptr<ChassisModel> imodel,
                                    const ChassisScales &iscales,
                                    const AbstractMotor::GearsetRatioPair &ipair,
-                                   const std::shared_ptr<Logger> &ilogger = Logger::getDefaultLogger());
+                                   std::shared_ptr<Logger> ilogger = Logger::getDefaultLogger());
 
     AsyncAdvancedProfileController(AsyncAdvancedProfileController &&other) = delete;
 

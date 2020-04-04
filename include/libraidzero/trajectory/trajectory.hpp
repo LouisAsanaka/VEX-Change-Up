@@ -20,12 +20,12 @@ public:
         // Pose at this point
         Pose2d pose;
 
-        State(double t, double vel, double accel, double angularVel, Pose2d&& pose)
-            : t{t}, vel{vel}, accel{accel}, angularVel{angularVel}, pose{std::move(pose)} {}
+        State(double t, double vel, double accel, double angularVel, const Pose2d& pose)
+            : t{t}, vel{vel}, accel{accel}, angularVel{angularVel}, pose{pose} {}
     };
 
     Trajectory() = default;
-    explicit Trajectory(const std::vector<State>& list);
+    explicit Trajectory(std::vector<State> list);
 
     const std::vector<State>& getStates() const { return states; }
     double getTotalTime() const { return totalTime; }
@@ -35,10 +35,10 @@ public:
 
     using SegmentPtr = std::unique_ptr<Segment, void (*)(void *)>;
 
-    static std::vector<Trajectory::State> segmentToStates(const SegmentPtr& segment, int length);
+    static std::vector<Trajectory::State> segmentToStates(const SegmentPtr& traj, int length);
 private:
     std::vector<State> states;
-    double totalTime;
+    double totalTime = 0.0;
 
     State interpolate(const State& start, const State& end, double i) const;
 };

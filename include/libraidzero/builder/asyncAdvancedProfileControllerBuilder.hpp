@@ -13,7 +13,7 @@ public:
      * @param ilogger The logger this instance will log to.
      */
     explicit AsyncAdvancedProfileControllerBuilder(
-        const std::shared_ptr<Logger> &ilogger = Logger::getDefaultLogger());
+        std::shared_ptr<Logger> ilogger = Logger::getDefaultLogger());
 
     /**
      * Sets the output. This must be used with buildRamsetePathController().

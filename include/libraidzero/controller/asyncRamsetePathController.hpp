@@ -165,7 +165,7 @@ protected:
     std::shared_ptr<OdomChassisController> chassis;
     std::shared_ptr<RamseteController> ramseteController;
 
-    int timeout;
+    int timeout = 0;
 
     std::shared_ptr<Logger> logger;
     std::map<std::string, Trajectory> paths{};

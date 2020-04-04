@@ -12,6 +12,7 @@
 #include <mutex>
 #include <numeric>
 #include <iostream>
+#include <utility>
 
 AsyncRamsetePathController::AsyncRamsetePathController(
     const TimeUtil &itimeUtil,
@@ -149,7 +150,7 @@ void AsyncRamsetePathController::setTarget(std::string ipathId, bool resetState,
 }
 
 void AsyncRamsetePathController::controllerSet(std::string ivalue) {
-    setTarget(ivalue);
+    setTarget(std::move(ivalue));
 }
 
 std::string AsyncRamsetePathController::getTarget() {
@@ -158,13 +159,14 @@ std::string AsyncRamsetePathController::getTarget() {
 
 bool AsyncRamsetePathController::waitUntilSettled(int itimeout) {
     // make it as large as possible, so effectively no timeout
-    if (!itimeout) {
+    if (itimeout == 0) {
         itimeout = ~itimeout;
     }
     timeout = itimeout;
     auto rate = timeUtil.getRate();
     uint32_t now = pros::millis();
-    bool settled = isSettled(), timeLeft = (pros::millis() - now < timeout);
+    bool settled = isSettled();
+    bool timeLeft = (pros::millis() - now < timeout);
     while (!settled && timeLeft) {
         rate->delayUntil(10_ms);
 
@@ -222,7 +224,7 @@ CrossplatformThread *AsyncRamsetePathController::getThread() const {
 }
 
 void AsyncRamsetePathController::trampoline(void *context) {
-    if (context) {
+    if (context != nullptr) {
         static_cast<AsyncRamsetePathController *>(context)->loop();
     }
 }

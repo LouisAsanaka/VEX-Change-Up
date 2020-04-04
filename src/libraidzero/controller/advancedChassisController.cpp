@@ -14,7 +14,7 @@ using namespace okapi;
 
 AdvancedChassisController::AdvancedChassisController(
     TimeUtil itimeUtil,
-    std::shared_ptr<ChassisModel> ichassisModel,
+    std::shared_ptr<ChassisModel> imodel,
     std::unique_ptr<IterativePosPIDController> idistanceController,
     std::unique_ptr<IterativePosPIDController> iturnController,
     std::unique_ptr<IterativePosPIDController> iangleController,
@@ -22,7 +22,7 @@ AdvancedChassisController::AdvancedChassisController(
     const ChassisScales &iscales,
     std::shared_ptr<Logger> ilogger)
     : logger(std::move(ilogger)),
-      chassisModel(std::move(ichassisModel)),
+      chassisModel(std::move(imodel)),
       timeUtil(std::move(itimeUtil)),
       distancePid(std::move(idistanceController)),
       turnPid(std::move(iturnController)),
@@ -50,7 +50,8 @@ void AdvancedChassisController::loop() {
 
     auto encStartVals = chassisModel->getSensorVals();
     std::valarray<std::int32_t> encVals;
-    double distanceElapsed = 0, angleChange = 0;
+    double distanceElapsed = 0;
+    double angleChange = 0;
     modeType pastMode = none;
     auto rate = timeUtil.getRate();
 
@@ -131,7 +132,7 @@ void AdvancedChassisController::loop() {
 }
 
 void AdvancedChassisController::trampoline(void *context) {
-    if (context) {
+    if (context != nullptr) {
         static_cast<AdvancedChassisController *>(context)->loop();
     }
 }
@@ -352,7 +353,7 @@ AdvancedChassisController::getGains() const {
 }
 
 void AdvancedChassisController::startThread() {
-    if (!task) {
+    if (task == nullptr) {
         task = new CrossplatformThread(trampoline, this, "AdvancedChassisController");
     }
 }

@@ -22,7 +22,7 @@ AdvancedOdomChassisController::AdvancedOdomChassisController(
     std::shared_ptr<Logger> ilogger)
     : OdomChassisController(itimeUtil, std::move(iodometry), imode, imoveThreshold, iturnThreshold),
         logger(std::move(ilogger)),
-        controller(std::static_pointer_cast<AdvancedChassisController>(std::move(icontroller))) {
+        controller(std::static_pointer_cast<AdvancedChassisController>(icontroller)) {
 }
 
 void AdvancedOdomChassisController::waitForOdomTask() {

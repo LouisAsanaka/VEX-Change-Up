@@ -4,8 +4,8 @@
 #include <vector>
 #include <algorithm>
 
-planner::PolynomialFunction::PolynomialFunction(const std::vector<double> c) : 
-    coefficients{c}
+planner::PolynomialFunction::PolynomialFunction(std::vector<double> c) : 
+    coefficients{std::move(c)}
 {
 }
 
@@ -66,8 +66,8 @@ planner::PolynomialFunction planner::PolynomialFunction::multiply(const Polynomi
 
     for (int i = 0; i < newCoefficients.size(); ++i) {
         newCoefficients[i] = 0.0;
-        for (int j = std::max(0, (int)(i + 1 - p.coefficients.size()));
-            j < std::min((int) coefficients.size(), i + 1);
+        for (int j = std::max(0, static_cast<int>(i + 1 - p.coefficients.size()));
+            j < std::min(static_cast<int>(coefficients.size()), i + 1);
             ++j) {
             newCoefficients[i] += coefficients[j] * p.coefficients[i - j];
         }

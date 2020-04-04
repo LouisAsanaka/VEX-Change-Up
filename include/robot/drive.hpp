@@ -23,7 +23,7 @@ namespace robot::drive {
 	/**
 	 * Returns the current odometry state
 	 */
-	const OdomState getState();
+	OdomState getState();
 
     /**
      * Resets all the encoders on the drivetrain 

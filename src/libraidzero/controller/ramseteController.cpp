@@ -11,9 +11,8 @@
 static double sinc(double x) {
     if (std::abs(x) < 1e-9) {
         return 1.0 - 1.0 / 6.0 * x * x;
-    } else {
-        return std::sin(x) / x;
     }
+    return std::sin(x) / x;
 }
 
 RamseteController::RamseteController(double ib, double izeta)
@@ -44,10 +43,10 @@ ChassisSpeeds RamseteController::calculate(const Pose2d& currentPose, const Pose
 }
 
 void RamseteController::setGains(double ib, double izeta) {
-    if (ib) {
+    if (ib != 0.0) {
         b = ib;
     }
-    if (izeta) {
+    if (izeta != 0.0) {
         zeta = izeta;
     }
 }

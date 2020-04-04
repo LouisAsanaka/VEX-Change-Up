@@ -1,11 +1,12 @@
 #include "libraidzero/trajectory/trajectory.hpp"
 #include "main.h"
 #include "libraidzero/util/miscUtil.hpp"
+#include <utility>
 #include <vector>
 
-Trajectory::Trajectory(const std::vector<State>& list) : states(list) {
-    totalTime = states.back().t;
-}
+Trajectory::Trajectory(std::vector<State> list) : 
+    totalTime(list.back().t), states(std::move(list)) {
+}   
 
 Trajectory::State Trajectory::interpolate(const State& start, const State& end, double i) const {
     // Find the new [t] value.
