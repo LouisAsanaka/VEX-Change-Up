@@ -8,8 +8,14 @@
 namespace planner {
 
     struct PathPoint {
+        /**
+         * X coordinate of the path point on the spline.
+         */
         double x;
 
+        /**
+         * Y coordinate of the path point on the spline.
+         */
         double y;
 
         /**

@@ -11,11 +11,14 @@
 #include "libraidzero/planner/profileStructs.hpp"
 #include "okapi/api/odometry/point.hpp"
 #include "okapi/api/units/QAngle.hpp"
+#include "okapi/api/units/QTime.hpp"
+#include "okapi/api/util/logging.hpp"
 #include "okapi/api/util/mathUtil.hpp"
 #include <algorithm>
 #include <iostream>
 #include <mutex>
 #include <numeric>
+#include <string>
 
 AsyncAdvancedProfileController::AsyncAdvancedProfileController(
     TimeUtil itimeUtil,
@@ -72,7 +75,7 @@ void AsyncAdvancedProfileController::generatePath(std::initializer_list<planner:
             points.emplace_back(
                 point.x.convert(meter), 
                 point.y.convert(meter), 
-                point.angle.value().convert(radian)
+                point.angle.value().convert(degree)
             );
         } else {
             points.emplace_back(
@@ -87,9 +90,16 @@ void AsyncAdvancedProfileController::generatePath(std::initializer_list<planner:
     // Free the old path before overwriting it
     forceRemovePath(ipathId);
 
+    auto timer = timeUtil.getTimer();
+    timer->clearHardMark();
+    timer->placeHardMark();
     paths[ipathId] = planner::ProfilePlanner::generatePath(
         points, iconfig
     );
+    auto end = timer->getDtFromHardMark();
+
+    std::cout << "AsyncAdvancedProfileController: Done in " <<
+        end.convert(millisecond) << " ms" << std::endl;
    
     LOG_INFO("AsyncAdvancedProfileController: Completely done generating path " + ipathId);
     LOG_DEBUG("AsyncAdvancedProfileController: Path length: " + std::to_string(paths[ipathId].pathPoints.size()));
@@ -198,7 +208,12 @@ void AsyncAdvancedProfileController::executeSinglePath(const planner::MotionProf
         // if a running path is asked to be removed at the moment this loop is executing
         std::scoped_lock lock(currentPathMutex);
 
-        const auto segDT = profile.pathPoints[i + 1].time * second;
+        double t = profile.pathPoints[i + 1].time;
+        if (std::isnan(t)) {
+            LOG_WARN("Time at index " + std::to_string(i) + " is NaN - check for errors");
+        }
+        const auto segDT = t * second;
+
         const auto linearSpeed = profile.pathPoints[i].velocity * mps;
         const double deltaAngle = (profile.pathPoints[i + 1].angle - profile.pathPoints[i].angle) 
             * M_PI / 180;

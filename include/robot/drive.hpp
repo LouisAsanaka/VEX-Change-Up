@@ -1,13 +1,14 @@
 #pragma once
 
 #include "main.h"
-#include "libraidzero/controller/advancedOdomChassisController.hpp"
+//#include "libraidzero/controller/advancedOdomChassisController.hpp"
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
 #include "libraidzero/controller/asyncAdvancedProfileController.hpp"
+#include "okapi/api/chassis/controller/defaultOdomChassisController.hpp"
 
 namespace robot::drive {
 
-	extern std::shared_ptr<AdvancedOdomChassisController> controller;
+	extern std::shared_ptr<DefaultOdomChassisController> controller;
     extern std::shared_ptr<AsyncRamsetePathController> pathFollower;
     extern std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
 	extern std::shared_ptr<ChassisModel> model;

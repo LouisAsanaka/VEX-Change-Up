@@ -51,10 +51,11 @@ namespace planner {
          *
          * @param waypoints points that the path should pass through
          * @param config configuration for the profile
+         * @param fillCoords whether to fill in x y coordinates or not
          * @return an array of points on the path
          */
         static planner::MotionProfile generatePath(const std::vector<Waypoint>& waypoints,
-            const PlannerConfig& config);
+            const PlannerConfig& config, bool fillCoords = false);
 
         static QueryData getQueryData(const std::vector<Waypoint>& waypoints);
 

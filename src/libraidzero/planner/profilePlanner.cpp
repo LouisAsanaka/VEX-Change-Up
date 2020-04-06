@@ -10,7 +10,7 @@
 
 planner::MotionProfile planner::ProfilePlanner::generatePath(
     const std::vector<Waypoint>& waypoints,
-    const PlannerConfig& config)
+    const PlannerConfig& config, const bool fillCoords)
 {
     auto queryData = getQueryData(waypoints);
     auto splines = calculateSplines(waypoints, queryData);
@@ -26,12 +26,14 @@ planner::MotionProfile planner::ProfilePlanner::generatePath(
         config.cruiseVelocity, config.targetAcceleration, config.initialVelocity,
         splines, queryData);
 
-    auto xQueries = queryCoord(splines.x, queryData);
-    auto yQueries = queryCoord(splines.y, queryData);
+    if (fillCoords) {
+        auto xQueries = queryCoord(splines.x, queryData);
+        auto yQueries = queryCoord(splines.y, queryData);
 
-    for (int i = 0; i < queryData.queryCount; i++) {
-        profile.pathPoints[i].x = xQueries[i];
-        profile.pathPoints[i].y = yQueries[i];
+        for (int i = 0; i < queryData.queryCount; i++) {
+            profile.pathPoints[i].x = xQueries[i];
+            profile.pathPoints[i].y = yQueries[i];
+        }
     }
 
     return profile;
@@ -85,10 +87,10 @@ void planner::ProfilePlanner::calculatePathPoints(MotionProfile& profile,
     const SplinePair& splines, const QueryData& queryData) 
 {
     auto& path = profile.pathPoints;
-    int pathSize = path.size();
+    const int pathSize = path.size();
 
-    auto dxQueries = queryDeriv(splines.x.getPolynomials()[0].derivative(), queryData);
-    auto dyQueries = queryDeriv(splines.y.getPolynomials()[0].derivative(), queryData);
+    const auto dxQueries = queryDeriv(splines.x.getPolynomials()[0].derivative(), queryData);
+    const auto dyQueries = queryDeriv(splines.y.getPolynomials()[0].derivative(), queryData);
 
     // The angle for each point is calculated using arctan of the ratio between dy and dx.
     // Since atan2 wraps the angle to be within -180 to 180 (because it has no way of knowing
@@ -116,7 +118,7 @@ void planner::ProfilePlanner::calculatePathPoints(MotionProfile& profile,
     for (int i = 1; i < pathSize; i++) {
         double interval = QUERY_INTERVAL;
         if (i == pathSize - 1) {
-            double remainder = std::fmod(queryData.totalWaypointDistance, QUERY_INTERVAL);
+            const double remainder = std::fmod(queryData.totalWaypointDistance, QUERY_INTERVAL);
             if (remainder != 0) {
                 interval = remainder;
             }
@@ -124,21 +126,21 @@ void planner::ProfilePlanner::calculatePathPoints(MotionProfile& profile,
         path[i].position = 0.5 * interval * (std::hypot(dxQueries[i], dyQueries[i])
             + std::hypot(dxQueries[i - 1], dyQueries[i - 1])) + path[i - 1].position;
     }
-    double totalDistance = path[pathSize - 1].position;
+    const double totalDistance = path[pathSize - 1].position;
 
     // Calculations for velocity and time are in three separate stages for the acceleration,
     // constant velocity, and deceleration parts respectively.
     {
         bool reachesCruiseVelocity = false;
 
-        double v0 = initialVelocity;
-        double v02 = v0 * v0;
+        const double v0 = initialVelocity;
+        const double v02 = v0 * v0;
         // First stage: we find velocity and time for data points assuming constant acceleration
         // up until either (1) we reach the cruise velocity, or (2) we have not reached cruise
         // velocity and we are halfway through the path already, in which case we must start
         // decelerating.
         int i;
-        // TODO: totalDistance / 2 comparison should not be needed
+        // TODO(louis): totalDistance / 2 comparison should not be needed
         for (i = 0; path[i].position <= totalDistance / 2; i++) {
             // v^2 = v0^2 + 2 a x
             // v = sqrt(v0^2 + 2 a x)
@@ -177,10 +179,10 @@ void planner::ProfilePlanner::calculatePathPoints(MotionProfile& profile,
         }
         // v = v0 + a t
         // t = (v - v0) / a
-        double cruiseStartTime = (cruiseVelocity - v0) / targetAcceleration;
+        const double cruiseStartTime = (cruiseVelocity - v0) / targetAcceleration;
         // v^2 = v0^2 + 2 a x
         // x = (v^2 - v0^2) / (2 a)
-        double cruiseStartPosition = (cruiseVelocity * cruiseVelocity - v02) / (2 * targetAcceleration);
+        const double cruiseStartPosition = (cruiseVelocity * cruiseVelocity - v02) / (2 * targetAcceleration);
         int k;
         // Second stage: we calculate velocity and time in between the end of first stage and
         // start of third stage. If we never reach the cruise velocity, this loop never runs.
@@ -194,22 +196,23 @@ void planner::ProfilePlanner::calculatePathPoints(MotionProfile& profile,
             path[k].time = cruiseStartTime
                 + (path[k].position - cruiseStartPosition) / cruiseVelocity;
         }
-        int endOfCruiseIndex = k;
-        int endOfAccelIndex = i;
-        double decelerateStartPosition = reachesCruiseVelocity
-            // The next position at the end of the cruising period is the start
+        const int endOfCruiseIndex = k - 1;
+        const int endOfAccelIndex = i - 1;
+        const double decelerateStartPosition = reachesCruiseVelocity
+            // The position at the end of the cruising period is the start
             ? path[endOfCruiseIndex].position
             : path[endOfAccelIndex].position;
-        double decelerateInitialVelocity = reachesCruiseVelocity
+        const double decelerateInitialVelocity = reachesCruiseVelocity
             ? cruiseVelocity
-            : path[endOfAccelIndex].velocity;
-        double decelerateStartTime = reachesCruiseVelocity
-            ? path[endOfCruiseIndex - 1].time
-            : path[endOfAccelIndex - 1].time;
+            : path[endOfAccelIndex + 1].velocity; // TODO(louis): Investigate index being + 1
+        const double decelerateStartTime = reachesCruiseVelocity
+            ? path[endOfCruiseIndex].time
+            : path[endOfAccelIndex].time;
 
-        double decelerationDistance = decelerateInitialVelocity * decelerateInitialVelocity 
+        const double decelerationDistance = decelerateInitialVelocity * decelerateInitialVelocity 
             / (2 * targetAcceleration);
-        double endingPosition = decelerateStartPosition + decelerationDistance;
+        const double endingPosition = decelerateStartPosition + decelerationDistance;
+        int endingIndex = 0;
 
         // Third stage for time: calculate from end of stage 2 to end of path
         for (; k < pathSize; k++) {
@@ -217,9 +220,9 @@ void planner::ProfilePlanner::calculatePathPoints(MotionProfile& profile,
             // (1/2) (-a) t^2 + v0 t + (x0 - x) = 0
             // t = (-v0 +- sqrt(v0^2 - 4 ((1/2) (-a)) (x0 - x))) / (2 ((1/2) (-a)))
             // t = (-v0 +- sqrt(v0^2 - 2 (-a) (x0 - x))) / -a
-            double pos = path[k].position;
+            const double pos = path[k].position;
             if (pos > endingPosition) {
-                path[k].time = decelerateStartTime + decelerateInitialVelocity / targetAcceleration;
+                path[k].time = decelerateStartTime + decelerateInitialVelocity / targetAcceleration + 0.01 * (k - endingIndex);
             } else {
                 path[k].time = decelerateStartTime
                     + (-decelerateInitialVelocity
@@ -227,25 +230,27 @@ void planner::ProfilePlanner::calculatePathPoints(MotionProfile& profile,
                             - 2 * -targetAcceleration
                             * (decelerateStartPosition - path[k].position)))
                     / -targetAcceleration;
+                endingIndex = k;
             }
         }
     }
 
+    profile.totalTime = path.back().time;
+    profile.totalLength = totalDistance;
+
     /*for (int l = 0; l < pathSize; ++l) {
         std::cout << "Index " << l << std::endl;
-        std::cout << "  Time = " << path[l].time << " s" << std::endl;
+        std::cout << "  t = " << path[l].time << " s" << std::endl;
         std::cout << "  Pos  = " << path[l].position << " m" << std::endl;
         std::cout << "  Vel  = " << path[l].velocity << " m/s" << std::endl;
         std::cout << "  Ang  = " << path[l].angle << " deg" << std::endl;
     }*/
 
-    profile.totalTime = path.back().time;
-    profile.totalLength = totalDistance;
-
     // Calculate the time differences (i.e. make the times not cumulative)
-    for (int i = path.size() - 1; i > 0; i--) {
+    for (std::size_t i = path.size() - 1; i > 0; i--) {
         path[i].time -= path[i - 1].time;
     }
+    
 }
 
 std::vector<double> planner::ProfilePlanner::queryDeriv(const planner::PolynomialFunction& p, 

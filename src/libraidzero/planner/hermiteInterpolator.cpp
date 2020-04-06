@@ -10,13 +10,13 @@ void planner::HermiteInterpolator::addSamplePoint(double x, const std::vector<do
         throw std::invalid_argument("too many derivatives");
     }
 
-    for (int i = 0; i < value.size(); ++i) {
+    for (std::size_t i = 0; i < value.size(); ++i) {
         std::vector<double> y;
         y.push_back(value[i]);
 
         if (i > 1) {
             double inv = 1.0 / FACTORIALS[i];
-            for (int j = 0; j < y.size(); ++j) {
+            for (std::size_t j = 0; j < y.size(); ++j) {
                 y[j] *= inv;
             }
         }

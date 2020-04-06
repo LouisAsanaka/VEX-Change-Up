@@ -27,10 +27,10 @@ public:
     /**
      * Sets the config.
      *
-     * @param ilimits The config.
+     * @param iconfig The config.
      * @return An ongoing builder.
      */
-    AsyncAdvancedProfileControllerBuilder &withConfig(const planner::PlannerConfig &ilimits);
+    AsyncAdvancedProfileControllerBuilder &withConfig(const planner::PlannerConfig &iconfig);
 
     /**
      * Sets the TimeUtilFactory used when building the controller. The default is the static

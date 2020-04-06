@@ -3,8 +3,8 @@
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
 
 AsyncRamsetePathControllerBuilder::AsyncRamsetePathControllerBuilder(
-    const std::shared_ptr<Logger> &ilogger)
-    : logger(ilogger) {
+    std::shared_ptr<Logger> ilogger)
+    : logger(std::move(ilogger)) {
 }
 
 AsyncRamsetePathControllerBuilder &AsyncRamsetePathControllerBuilder::withOutput(

@@ -63,11 +63,11 @@ Trajectory::State Trajectory::sample(double t) const {
 
     // This starts at 1 because we use the previous state later on for
     // interpolation.
-    int low = 1;
-    int high = states.size() - 1;
+    std::size_t low = 1;
+    std::size_t high = states.size() - 1;
 
     while (low != high) {
-        int mid = (low + high) / 2;
+        const std::size_t mid = (low + high) / 2;
         if (states[mid].t < t) {
             // This index and everything under it are less than the requested
             // timestamp. Therefore, we can discard them.
