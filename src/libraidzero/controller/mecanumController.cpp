@@ -1,5 +1,6 @@
 #include "libraidzero/controller/mecanumController.hpp"
 #include "main.h"
+#include "okapi/api/chassis/controller/odomChassisController.hpp"
 #include "okapi/api/chassis/model/xDriveModel.hpp"
 #include "okapi/api/units/QAngle.hpp"
 #include "okapi/api/util/logging.hpp"
@@ -8,7 +9,7 @@
 
 MecanumController::MecanumController(
     TimeUtil itimeUtil,
-    std::shared_ptr<AdvancedOdomChassisController> odomChassisController,
+    std::shared_ptr<OdomChassisController> odomChassisController,
     PIDController::Gains distanceGains, PIDController::Gains angleGains
 ) :
     logger{Logger::getDefaultLogger()},
@@ -177,7 +178,7 @@ void MecanumController::executeStrafe(const Pose2d& target,
         directionVector *= distanceOutput;
         directionVector = directionVector.rotateBy(-currentPose.rotation());
 
-        double angleOutput = anglePid->calculate(
+        double angleOutput = -anglePid->calculate(
             currentPose.rotation().angle().convert(radian));
 
         std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;

@@ -6,7 +6,6 @@
 constexpr QLength DRIVE_WHEEL_DIAMETER         = 4_in;
 constexpr QLength DRIVE_WHEEL_TRACK            = 14.5_in;
 constexpr QLength TRACKING_WHEEL_DIAMETER      = 2.75_in;
-constexpr QLength TRACKING_WHEEL_TRACK         = 13.2_in;
 constexpr QLength TRACKING_BACK_WHEEL_DISTANCE = 13.2_in;
 
 // Drive profiling constants

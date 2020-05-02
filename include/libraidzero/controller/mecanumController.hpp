@@ -2,7 +2,6 @@
 
 #include "main.h"
 #include "libraidzero/geometry/pose2d.hpp"
-#include "libraidzero/controller/advancedOdomChassisController.hpp"
 #include "okapi/api/chassis/model/xDriveModel.hpp"
 #include "okapi/api/odometry/odometry.hpp"
 #include "pidController.hpp"
@@ -11,7 +10,7 @@ class MecanumController {
 public:
     MecanumController(
         TimeUtil itimeUtil,
-        std::shared_ptr<AdvancedOdomChassisController> odomChassisController,
+        std::shared_ptr<OdomChassisController> odomChassisController,
         PIDController::Gains distanceGains, PIDController::Gains angleGains
     );
     ~MecanumController();
@@ -66,7 +65,7 @@ public:
      */
     CrossplatformThread *getThread() const;
 protected:
-    std::shared_ptr<AdvancedOdomChassisController> chassisController;
+    std::shared_ptr<OdomChassisController> chassisController;
 
     std::shared_ptr<Logger> logger;
     std::shared_ptr<XDriveModel> model;
