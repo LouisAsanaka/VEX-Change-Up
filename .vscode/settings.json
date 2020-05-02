@@ -25,7 +25,10 @@
     "C_Cpp.formatting": "Disabled",
     "C_Cpp.errorSquiggles": "Disabled",
     "C_Cpp.intelliSenseEngine": "Disabled",
+    "C_Cpp.enhancedColorization": "Disabled",
+    "semanticHighlighting": false,
 
     // Enable / Disable Code Lens
     "editor.codeLens": false,
+    "clangd.semanticHighlighting": false
 }

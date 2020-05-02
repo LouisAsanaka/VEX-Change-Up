@@ -1,25 +1,22 @@
 #include "robot/drive.hpp"
+#include "libraidzero/controller/pidController.hpp"
 #include "main.h"
 #include "constants.hpp"
-//#include "libraidzero/controller/advancedOdomChassisController.hpp"
-#include "libraidzero/controller/asyncAdvancedProfileController.hpp"
-//#include "libraidzero/controller/asyncRamsetePathController.hpp"
-#include "libraidzero/builder/asyncAdvancedProfileControllerBuilder.hpp"
-#include "okapi/impl/chassis/controller/chassisControllerBuilder.hpp"
-//#include "libraidzero/builder/asyncRamsetePathControllerBuilder.hpp"
-//#include "libraidzero/builder/advancedChassisControllerBuilder.hpp"
+#include "libraidzero/api.hpp"
+#include <memory>
 
 namespace robot::drive {
 
-	std::shared_ptr<DefaultOdomChassisController> controller;
+	std::shared_ptr<AdvancedOdomChassisController> controller;
+    std::unique_ptr<MecanumController> mecanumController;
     //std::shared_ptr<AsyncRamsetePathController> pathFollower;
-    std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
-    std::shared_ptr<ChassisModel> model;
+    //std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
+    std::shared_ptr<XDriveModel> model;
 
 	void init() {
-        controller = std::static_pointer_cast<DefaultOdomChassisController>(
-            ChassisControllerBuilder()
-                .withMotors({9, 10}, {-1, -2})
+        controller = std::static_pointer_cast<AdvancedOdomChassisController>(
+            AdvancedChassisControllerBuilder()
+                .withMotors(1, -2, -3, 4)
                 .withDimensions(AbstractMotor::gearset::green, {
                     {DRIVE_WHEEL_DIAMETER, DRIVE_WHEEL_TRACK}, 
 					okapi::imev5GreenTPR})
@@ -30,33 +27,36 @@ namespace robot::drive {
                     ADIEncoder{'E', 'F'} // Middle encoder
                 )*/
                 .withGains(
-                    {0.0023, 0, 0.0001},
                     {0.002, 0, 0.0001},
+                    {0.0013, 0, 0.0001},
                     {0.001, 0, 0.0001}
                 )
-                .withOdometry({{
-                    DRIVE_WHEEL_DIAMETER, DRIVE_WHEEL_TRACK}, 
-                    quadEncoderTPR},
-                    StateMode::FRAME_TRANSFORMATION, 10_mm, 2_deg)
-                .buildOdometry()
+                .build()
         );
+        mecanumController = std::make_unique<MecanumController>(
+            TimeUtilFactory().create(), controller, 
+            PIDController::Gains{1.0, 0.0, 0.0},
+            PIDController::Gains{1.0, 0.0, 0.0}
+        );
+        mecanumController->flipDisable(true);
         /*pathFollower = AsyncRamsetePathControllerBuilder()
 			.withLimits({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, DRIVE_MAX_JERK})
 			.withOutput(controller)
 			.buildRamsetePathController();
         pathFollower->flipDisable(true);*/
 
-        profileFollower = AsyncAdvancedProfileControllerBuilder()
+        /*profileFollower = AsyncAdvancedProfileControllerBuilder()
             .withConfig({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, 0.0})
             .withOutput(controller)
             .buildAdvancedProfileController();
-        profileFollower->flipDisable(true);
+        profileFollower->flipDisable(true);*/
 
-		model = controller->getModel();
+		model = std::dynamic_pointer_cast<XDriveModel>(controller->getModel());
 		model->setBrakeMode(AbstractMotor::brakeMode::brake);
+        model->setMaxVoltage(0.8 * 12000);
 	}
 
-    void generatePath(std::initializer_list<PathfinderPoint> iwaypoints,
+    /*void generatePath(std::initializer_list<PathfinderPoint> iwaypoints,
                       const std::string &ipathId, bool storePath) {
         pathFollower->generatePath(iwaypoints, ipathId, storePath);
     }
@@ -68,7 +68,7 @@ namespace robot::drive {
 
 	OdomState getState() {
 		return controller->getState();
-	}
+	}*/
 
 	void resetEncoders() {
 		model->resetSensors();

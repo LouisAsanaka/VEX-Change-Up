@@ -16,7 +16,7 @@
 using namespace okapi;
 
 class AdvancedOdomChassisController : public OdomChassisController {
-    typedef AdvancedChassisController::TurnType TurnType;
+    using TurnType = AdvancedChassisController::TurnType;
 public:
     /**
      * Odometry based chassis controller that moves using a separately constructed chassis controller.

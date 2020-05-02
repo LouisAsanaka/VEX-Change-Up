@@ -7,12 +7,14 @@
  */
 
 #include "libraidzero/builder/advancedChassisControllerBuilder.hpp"
+#include "libraidzero/controller/pidController.hpp"
 #include "okapi/api/chassis/model/threeEncoderSkidSteerModel.hpp"
 #include "okapi/api/chassis/model/threeEncoderXDriveModel.hpp"
 #include "okapi/api/odometry/threeEncoderOdometry.hpp"
 #include "okapi/impl/util/configurableTimeUtilFactory.hpp"
 #include "okapi/impl/util/rate.hpp"
 #include "okapi/impl/util/timer.hpp"
+#include <memory>
 #include <stdexcept>
 
 using namespace okapi;
@@ -372,14 +374,14 @@ AdvancedChassisControllerBuilder::buildAOCC(std::shared_ptr<ChassisController> c
     if (odometry == nullptr) {
         if (middleSensor == nullptr) {
             odometry = std::make_shared<TwoEncoderOdometry>(odometryTimeUtilFactory.create(),
-                                                                                                            chassisController->getModel(),
-                                                                                                            odomScales,
-                                                                                                            controllerLogger);
+                                                            chassisController->getModel(),
+                                                            odomScales,
+                                                            controllerLogger);
         } else {
             odometry = std::make_shared<ThreeEncoderOdometry>(odometryTimeUtilFactory.create(),
-                                                                                                                chassisController->getModel(),
-                                                                                                                odomScales,
-                                                                                                                controllerLogger);
+                                                              chassisController->getModel(),
+                                                              odomScales,
+                                                              controllerLogger);
         }
     }
 

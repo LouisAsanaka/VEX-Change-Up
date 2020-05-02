@@ -8,6 +8,17 @@
 
 class PIDController {
 public:
+    struct Gains {
+        double kP{0.0};
+        double kI{0.0};
+        double kD{0.0};
+
+        Gains(double p, double i, double d) : kP{p}, kI{i}, kD{d}
+        {
+        }
+    };
+
+    PIDController(Gains gains);
     PIDController(double kP, double kI, double kD);
     ~PIDController() = default;
 
@@ -34,7 +45,8 @@ public:
 
     void reset();
 private:
-    std::unique_ptr<okapi::AbstractTimer> timer = okapi::TimeUtilFactory().createDefault().getTimer();
+    std::unique_ptr<okapi::AbstractTimer> timer = 
+        okapi::TimeUtilFactory::createDefault().getTimer();
 
     double kP = 0.0;
     double kI = 0.0;

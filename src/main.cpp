@@ -11,7 +11,7 @@ void initialize() {
             Logger::LogLevel::info
         )
     );
-	pros::lcd::initialize();
+    pros::lcd::initialize();
 	robot::init();
 }
 

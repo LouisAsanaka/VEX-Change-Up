@@ -3,6 +3,12 @@
 #include <algorithm>
 #include <cmath>
 
+PIDController::PIDController(PIDController::Gains gains) : 
+    kP{gains.kP}, kI{gains.kI}, kD{gains.kD} 
+{
+
+}
+
 PIDController::PIDController(double kP, double kI, double kD) : 
     kP{kP}, kI{kI}, kD{kD} 
 {
@@ -63,6 +69,8 @@ double PIDController::getVelocityError() {
 }
 
 void PIDController::reset() {
+    positionError = 0.0;
+    velocityError = 0.0;
     previousError = 0.0;
     totalError = 0.0;
 }
