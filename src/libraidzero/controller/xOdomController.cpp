@@ -1,7 +1,7 @@
 #include <atomic>
 #include <utility>
 
-#include "libraidzero/controller/XOdomController.hpp"
+#include "libraidzero/controller/xOdomController.hpp"
 #include "libraidzero/controller/iodomController.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/geometry/translation2d.hpp"
