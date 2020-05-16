@@ -5,11 +5,10 @@
 
 namespace robot::drive {
 
-	extern std::unique_ptr<MecanumOdomController> controller;
-    // extern std::unique_ptr<MecanumController> mecanumController;
+	extern std::unique_ptr<XOdomController> controller;
     //extern std::shared_ptr<AsyncRamsetePathController> pathFollower;
-    //extern std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
-	extern std::shared_ptr<ThreeEncoderXDriveModel> model;
+    extern std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
+	extern std::shared_ptr<XDriveModel> model;
 
 	void init();
 

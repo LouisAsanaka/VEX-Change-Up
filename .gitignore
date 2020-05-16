@@ -16,3 +16,6 @@ temp.log
 temp.errors
 *.ini
 .d/
+
+# Unit tests
+tests/build/*

@@ -2,6 +2,7 @@
 #include "opcontrol.hpp"
 #include "robot.hpp"
 #include "constants.hpp"
+#include "robot/drive.hpp"
 
 void opcontrol() {
 	Controller master {ControllerId::master};
@@ -17,7 +18,7 @@ void opcontrol() {
             master.getAnalog(ControllerAnalog::leftX),
             master.getAnalog(ControllerAnalog::leftY),
             master.getAnalog(ControllerAnalog::rightX),
-            0.1
+            0.05
         );
 		pros::delay(20);
 	}

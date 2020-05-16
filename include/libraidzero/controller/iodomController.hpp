@@ -2,6 +2,7 @@
 
 #include "okapi/api/chassis/controller/chassisScales.hpp"
 #include "okapi/api/chassis/model/chassisModel.hpp"
+#include "okapi/api/coreProsAPI.hpp"
 #include "okapi/api/device/motor/abstractMotor.hpp"
 #include "okapi/api/odometry/odomState.hpp"
 #include "okapi/api/odometry/point.hpp"
@@ -77,6 +78,13 @@ public:
     virtual void turnToPoint(const Point& ipoint, int itimeout = 0) = 0;
 
     /**
+     * Sets the current odometry state.
+     *
+     * @param istate the new state
+     */
+    virtual void setState(OdomState istate) = 0;
+
+    /**
      * Returns the current odometry state.
      *
      * @return the odometry state
@@ -134,6 +142,20 @@ public:
      * Gets the GearsetRatioPair.
      */
     virtual AbstractMotor::GearsetRatioPair getGearsetRatioPair() const = 0;
+
+    /**
+     * Returns the internal thread that executes movements.
+     *
+     * @return internal thread
+     */
+    virtual CrossplatformThread* getThread() const = 0;
+
+    /**
+     * Returns the internal thread that does odometry.
+     *
+     * @return internal odometry thread
+     */
+    virtual CrossplatformThread* getOdomThread() const = 0;
 
     /**
      * Starts the internal thread that executes movements.

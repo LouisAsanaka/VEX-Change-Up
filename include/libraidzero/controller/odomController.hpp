@@ -110,6 +110,13 @@ public:
      * @param itimeout The timeout for the movement
      */
     void turnToPoint(const Point& ipoint, int itimeout = 0) override;
+    
+    /**
+     * Sets the current odometry state.
+     *
+     * @param istate the new state
+     */
+    void setState(OdomState istate) override;
 
     /**
      * Returns the current odometry state.
@@ -165,6 +172,20 @@ public:
      * Gets the GearsetRatioPair.
      */
     AbstractMotor::GearsetRatioPair getGearsetRatioPair() const override;
+
+    /**
+     * Returns the internal thread that executes movements.
+     *
+     * @return internal thread
+     */
+    CrossplatformThread* getThread() const override;
+
+    /**
+     * Returns the internal thread that does odometry.
+     *
+     * @return internal odometry thread
+     */
+    CrossplatformThread* getOdomThread() const override;
 
     /**
      * Starts the internal thread that executes movements.

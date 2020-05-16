@@ -222,6 +222,10 @@ void OdomController::turnToPoint(const Point& ipoint, int itimeout) {
     }
 }
 
+void OdomController::setState(OdomState istate) {
+    odometry->setState(istate);
+}
+
 OdomState OdomController::getState() {
     return odometry->getState();
 }
@@ -354,6 +358,14 @@ AbstractMotor::GearsetRatioPair OdomController::getGearsetRatioPair() const {
     return gearsetRatioPair;
 }
 
+CrossplatformThread* OdomController::getThread() const {
+    return task;
+}
+
+CrossplatformThread* OdomController::getOdomThread() const {
+    return odomTask;
+}
+
 void OdomController::startThread() {
     if (task == nullptr) {
         task = new CrossplatformThread(trampoline, this, "OdomController");
@@ -368,7 +380,7 @@ void OdomController::trampoline(void* context) {
 
 void OdomController::startOdomThread() {
     if (odomTask == nullptr) {
-        odomTask = new CrossplatformThread(trampoline, this, "OdomController");
+        odomTask = new CrossplatformThread(odomTrampoline, this, "OdomController");
     }
 }
 
