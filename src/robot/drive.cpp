@@ -2,7 +2,9 @@
 #include "main.h"
 #include "constants.hpp"
 #include "libraidzero/api.hpp"
+#include "okapi/api/util/mathUtil.hpp"
 #include "okapi/impl/util/configurableTimeUtilFactory.hpp"
+#include "pros/rtos.hpp"
 
 namespace robot::drive {
 
@@ -12,32 +14,33 @@ namespace robot::drive {
     std::shared_ptr<XDriveModel> model;
 
 	void init() {
-        IterativePosPIDController::Gains DISTANCE_GAINS {0.002, 0.0, 0.0001};
+        IterativePosPIDController::Gains DISTANCE_GAINS {0.0035, 0.0, 0.00007};
         IterativePosPIDController::Gains ANGLE_GAINS {0.002, 0.0, 0.0};
-        IterativePosPIDController::Gains TURN_GAINS {0.003, 0.0, 0.0001};
+        IterativePosPIDController::Gains TURN_GAINS {0.006, 0.001, 0.00007};
         IterativePosPIDController::Gains STRAFE_DISTANCE_GAINS {1.0, 0.0, 0.0};
         IterativePosPIDController::Gains STRAFE_ANGLE_GAINS {1.0, 0.0, 0.0};
 
         AbstractMotor::GearsetRatioPair gearing {AbstractMotor::gearset::green, 1.0};
-        ChassisScales scales {
-            {DRIVE_WHEEL_DIAMETER, DRIVE_WHEEL_TRACK, 
+        ChassisScales odomScales {
+            {TRACKING_WHEEL_DIAMETER, WHEEL_TRACK, 
             TRACKING_BACK_WHEEL_DISTANCE, TRACKING_WHEEL_DIAMETER}, 
-		    okapi::imev5GreenTPR
+		    okapi::quadEncoderTPR
         };
         auto leftLeader = std::make_shared<Motor>(1);
         auto rightLeader = std::make_shared<Motor>(-2);
+        auto leftEnc = std::make_shared<ADIEncoder>('C', 'D', true);
+        auto rightEnc = std::make_shared<ADIEncoder>('G', 'H', false);
+        auto midEnc = std::make_shared<ADIEncoder>('E', 'F', true);
         model = std::make_shared<ThreeEncoderXDriveModel>(
-            leftLeader, 
+            leftLeader,
             rightLeader,
             std::make_shared<Motor>(-3),
             std::make_shared<Motor>(4),
-            std::make_shared<ADIEncoder>('A', 'B'), 
-            std::make_shared<ADIEncoder>('C', 'D', true),
-            std::make_shared<ADIEncoder>('E', 'F'),
+            leftEnc, rightEnc, midEnc,
             toUnderlyingType(gearing.internalGearset), 12000
         );
         ConfigurableTimeUtilFactory closedLoopTimeFactory = ConfigurableTimeUtilFactory(
-            50, 5, 100_ms);
+            20, 5, 200_ms);
         ConfigurableTimeUtilFactory strafingTimeFactory = ConfigurableTimeUtilFactory(
             0.02, 5, 100_ms);
         std::shared_ptr<Logger> controllerLogger {Logger::getDefaultLogger()};
@@ -45,7 +48,7 @@ namespace robot::drive {
             TimeUtilFactory::createDefault(),
             model,
             std::make_shared<ThreeEncoderOdometry>(
-                TimeUtilFactory::createDefault(), model, scales, controllerLogger
+                TimeUtilFactory::createDefault(), model, odomScales, controllerLogger
             ),
             std::make_unique<IterativePosPIDController>(DISTANCE_GAINS,
                                                         closedLoopTimeFactory.create(),
@@ -67,7 +70,7 @@ namespace robot::drive {
                                                         strafingTimeFactory.create(),
                                                         std::make_unique<PassthroughFilter>(),
                                                         controllerLogger),
-            gearing, scales, 0.02_m, 1_deg, controllerLogger
+            gearing, odomScales, 0.02_m, 1_deg, controllerLogger
         );
         controller->startOdomThread();
         if (NOT_INITIALIZE_TASK && NOT_COMP_INITIALIZE_TASK) {
@@ -81,7 +84,7 @@ namespace robot::drive {
         profileFollower = std::make_shared<AsyncAdvancedProfileController>(
             TimeUtilFactory::createDefault(),
             planner::PlannerConfig{DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, 0.0},
-            model, scales, gearing, controllerLogger
+            model, odomScales, gearing, controllerLogger
         );
         profileFollower->startThread();
         if (NOT_INITIALIZE_TASK && NOT_COMP_INITIALIZE_TASK) {
@@ -90,7 +93,7 @@ namespace robot::drive {
         profileFollower->flipDisable(true);
 
         model->setBrakeMode(AbstractMotor::brakeMode::brake);
-        model->setMaxVoltage(1.0 * 12000);
+        model->setMaxVoltage(DRIVE_SPEED * 12000);
 
         /*pathFollower = AsyncRamsetePathControllerBuilder()
 			.withLimits({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, DRIVE_MAX_JERK})
@@ -115,6 +118,7 @@ namespace robot::drive {
 
 	void resetEncoders() {
 		model->resetSensors();
+        pros::delay(50);
 	}
 
 	void stop() {

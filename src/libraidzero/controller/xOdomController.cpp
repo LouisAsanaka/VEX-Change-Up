@@ -87,7 +87,6 @@ void XOdomController::loop() {
 
                 distancePid->step(distanceElapsed);
                 anglePid->step(angleChange);
-
                 model->driveVectorVoltage(distancePid->getOutput(), anglePid->getOutput());
                 break;
             case ControlMode::Angle:
@@ -98,7 +97,7 @@ void XOdomController::loop() {
 
                 switch (turnType) {
                     case TurnType::PointTurn:
-                        model->driveVectorVoltage(0, turnPid->getOutput());
+                        model->driveVectorVoltage(0, -turnPid->getOutput());
                         break;
                     case TurnType::LeftPivot:
                         model->tank(0, -turnPid->getOutput());

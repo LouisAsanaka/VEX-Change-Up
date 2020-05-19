@@ -20,6 +20,7 @@ void opcontrol() {
             master.getAnalog(ControllerAnalog::rightX),
             0.05
         );
+		std::cout << robot::drive::controller->getState().str() << std::endl;
 		pros::delay(20);
 	}
 }

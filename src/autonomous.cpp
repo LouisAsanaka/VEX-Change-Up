@@ -20,8 +20,11 @@ void autonomous() {
     robot::drive::controller->setState({0_m, 0_m, 0_deg});
     // robot::drive::controller->driveForDistance(0.5_m);
     // std::cout << robot::drive::controller->getState().str() << std::endl;
-    robot::drive::controller->turnAngle(90_deg);
     std::cout << robot::drive::controller->getState().str() << std::endl;
+    //robot::drive::controller->turnToAngle(90_deg);
+    robot::drive::controller->driveForDistance(0.5_m);
+    std::cout << robot::drive::controller->getState().str() << std::endl;
+    master.setText(0, 0, std::to_string(robot::drive::controller->getState().x.convert(meter)));
     /*robot::drive::profileFollower->generatePath({
         {0_m, 0_m, 0_deg},
         {0.45_m, 0.45_m, 0_deg}
