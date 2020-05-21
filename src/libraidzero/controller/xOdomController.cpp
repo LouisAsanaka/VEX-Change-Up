@@ -4,6 +4,7 @@
 #include "libraidzero/controller/xOdomController.hpp"
 #include "libraidzero/controller/iodomController.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
+#include "libraidzero/geometry/rotation2d.hpp"
 #include "libraidzero/geometry/translation2d.hpp"
 #include "okapi/api/odometry/odomMath.hpp"
 #include "okapi/api/odometry/stateMode.hpp"
@@ -272,6 +273,15 @@ void XOdomController::turnToPoint(const Point& ipoint, int itimeout) {
                  " degrees");
         turnAngle(angle, TurnType::PointTurn, itimeout);
     }
+}
+
+void XOdomController::strafeToPoint(const Point& ipoint) {
+    strafeToPose(
+        Pose2d{
+            Translation2d{ipoint.x, ipoint.y}, 
+            Rotation2d{-1 * odometry->getState().theta}
+        }
+    );
 }
 
 void XOdomController::strafeToPose(const Pose2d& ipose) {

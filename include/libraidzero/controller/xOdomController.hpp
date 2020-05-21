@@ -118,6 +118,14 @@ public:
     void turnToPoint(const Point& ipoint, int itimeout = 0) override;
 
     /**
+     * Makes the robot strafe from the current pose to the target point, while
+     * maintaining heading.
+     *
+     * @param ipoint The target point
+     */
+    void strafeToPoint(const Point& ipoint);
+
+    /**
      * Makes the robot strafe from the current pose to the target one.
      *
      * @param ipose The target pose
