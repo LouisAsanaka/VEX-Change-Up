@@ -40,9 +40,14 @@ namespace robot::drive {
             toUnderlyingType(gearing.internalGearset), 12000
         );
         ConfigurableTimeUtilFactory closedLoopTimeFactory = ConfigurableTimeUtilFactory(
-            40, 5, 200_ms);
-        ConfigurableTimeUtilFactory strafingTimeFactory = ConfigurableTimeUtilFactory(
-            0.03, 5, 100_ms);
+            DRIVE_ENCODER_TARGET_ERROR, DRIVE_ENCODER_TARGET_DERIV, DRIVE_ENCODER_TARGET_TIME
+        );
+        ConfigurableTimeUtilFactory strafingDistTimeFactory = ConfigurableTimeUtilFactory(
+            STRAFING_DIST_TARGET_ERROR, STRAFING_DIST_TARGET_DERIV, STRAFING_DIST_TARGET_TIME
+        );
+        ConfigurableTimeUtilFactory strafingAngleTimeFactory = ConfigurableTimeUtilFactory(
+            STRAFING_ANGLE_TARGET_ERROR, STRAFING_ANGLE_TARGET_DERIV, STRAFING_ANGLE_TARGET_TIME
+        );
         std::shared_ptr<Logger> controllerLogger {Logger::getDefaultLogger()};
         controller = std::make_unique<XOdomController>(
             TimeUtilFactory::createDefault(),
@@ -63,14 +68,14 @@ namespace robot::drive {
                                                         std::make_unique<PassthroughFilter>(),
                                                         controllerLogger),
             std::make_unique<IterativePosPIDController>(STRAFE_DISTANCE_GAINS,
-                                                        strafingTimeFactory.create(),
+                                                        strafingDistTimeFactory.create(),
                                                         std::make_unique<PassthroughFilter>(),
                                                         controllerLogger),
             std::make_unique<IterativePosPIDController>(STRAFE_ANGLE_GAINS,
-                                                        strafingTimeFactory.create(),
+                                                        strafingAngleTimeFactory.create(),
                                                         std::make_unique<PassthroughFilter>(),
                                                         controllerLogger),
-            gearing, odomScales, 0.02_m, 1_deg, controllerLogger
+            gearing, odomScales, DISTANCE_BEFORE_MOVE, ANGLE_BEFORE_TURN, controllerLogger
         );
         controller->startOdomThread();
         if (NOT_INITIALIZE_TASK && NOT_COMP_INITIALIZE_TASK) {
@@ -94,6 +99,9 @@ namespace robot::drive {
 
         model->setBrakeMode(AbstractMotor::brakeMode::brake);
         model->setMaxVoltage(DRIVE_SPEED * 12000);
+        model->setMaxVelocity(
+            DRIVE_SPEED * toUnderlyingType(gearing.internalGearset)
+        );
 
         /*pathFollower = AsyncRamsetePathControllerBuilder()
 			.withLimits({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, DRIVE_MAX_JERK})
