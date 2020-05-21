@@ -24,6 +24,11 @@ namespace robot::drive {
 	OdomState getState();*/
 
     /**
+     * Does field-oriented control for the x-drive.
+     */
+    void fieldOrientedControl();
+
+    /**
      * Resets all the encoders on the drivetrain 
      */
 	void resetEncoders();

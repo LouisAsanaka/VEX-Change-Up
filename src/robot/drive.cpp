@@ -1,4 +1,5 @@
 #include "robot/drive.hpp"
+#include "libraidzero/geometry/translation2d.hpp"
 #include "main.h"
 #include "constants.hpp"
 #include "libraidzero/api.hpp"
@@ -123,6 +124,13 @@ namespace robot::drive {
 	OdomState getState() {
 		return controller->getState();
 	}*/
+
+    void fieldOrientedControl(double irightSpeed, double iforwardSpeed, double iyaw) {
+        double gyroAngle = 0.0;
+        Translation2d input {irightSpeed * meter, iforwardSpeed * meter};
+        input.rotateBy(Rotation2d{-gyroAngle * degree});
+        model->xArcade(input.x().convert(meter), input.y().convert(meter), iyaw);
+    }
 
 	void resetEncoders() {
 		model->resetSensors();
