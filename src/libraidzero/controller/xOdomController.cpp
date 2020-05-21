@@ -91,7 +91,7 @@ void XOdomController::loop() {
                 break;
             case ControlMode::Angle:
                 encVals = model->getSensorVals() - encStartVals;
-                angleChange = (encVals[0] - encVals[1]) / 2.0; // left - right
+                angleChange = (encVals[1] - encVals[0]) / 2.0; // right - left
 
                 turnPid->step(angleChange);
 
@@ -108,33 +108,39 @@ void XOdomController::loop() {
                 }
                 break;
             case ControlMode::P2PStrafe: {
-                currentPose = Pose2d::fromOdomState(odometry->getState());
+                // Use cartesian to flip x & y axes since odom works in a
+                // different frame
+                currentPose = Pose2d::fromOdomState(odometry->getState(StateMode::CARTESIAN));
 
                 std::string message = "XOdomController: Odom Pose=" + currentPose.toString();
                 LOG_INFO(message);
 
                 // Find the direction the drive should move towards in global coordinates
                 auto directionVector = targetTranslation - currentPose.translation();
+
                 // Use the same vector to find the distance to the target
                 double distance = directionVector.norm().convert(meter);
 
                 // Should always be negated since setpoint is always 0, and distance
                 // is always positive. The direction vector only needs the magnitude.
-                double distanceOutput = -distancePid->step(distance);
+                double distanceOutput = -strafeDistancePid->step(distance);
 
+                // Normalize the vector & scale it by the 
                 directionVector /= distance;
-                std::cout << directionVector.norm().convert(meter) << " should be 1" << std::endl;
-
                 directionVector *= distanceOutput;
                 directionVector = directionVector.rotateBy(-currentPose.rotation());
+                //std::cout << "DirX: " << directionVector.x().convert(meter) << ", DirY:" << directionVector.y().convert(meter) << std::endl;
 
-                double angleOutput = -anglePid->step(
+                double angleOutput = -strafeAnglePid->step(
                     currentPose.rotation().angle().convert(radian));
 
-                std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
+                //std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
 
-                model->xArcade(directionVector.x().convert(meter), 
-                    directionVector.y().convert(meter), angleOutput);
+                model->xArcade(
+                    directionVector.x().convert(meter),
+                    directionVector.y().convert(meter), 
+                    angleOutput
+                );
                 break;
             }
             case ControlMode::None:
@@ -403,7 +409,7 @@ XOdomController::SettleResult XOdomController::waitForStrafeSettled(int itimeout
     bool settled = strafeDistancePid->isSettled() && strafeAnglePid->isSettled();
     auto rate = timeUtil.getRate();
     while (!settled && timeLeft) {
-        if (mode != ControlMode::Distance) {
+        if (mode != ControlMode::P2PStrafe) {
             // False will cause the loop to re-enter the switch
             LOG_WARN_S("XOdomController: Mode changed to distance/angle while waiting in strafe!");
             return SettleResult::NotSettled;
