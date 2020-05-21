@@ -16,9 +16,9 @@ namespace robot::drive {
 	void init() {
         IterativePosPIDController::Gains DISTANCE_GAINS {0.0035, 0.0, 0.00007};
         IterativePosPIDController::Gains ANGLE_GAINS {0.002, 0.0, 0.0};
-        IterativePosPIDController::Gains TURN_GAINS {0.006, 0.001, 0.00007};
-        IterativePosPIDController::Gains STRAFE_DISTANCE_GAINS {1.0, 0.0, 0.0};
-        IterativePosPIDController::Gains STRAFE_ANGLE_GAINS {1.0, 0.0, 0.0};
+        IterativePosPIDController::Gains TURN_GAINS {0.006, 0.001, 0.000065};
+        IterativePosPIDController::Gains STRAFE_DISTANCE_GAINS {9.0, 0.0, 0.002};
+        IterativePosPIDController::Gains STRAFE_ANGLE_GAINS {4.0, 0.0, 0.01};
 
         AbstractMotor::GearsetRatioPair gearing {AbstractMotor::gearset::green, 1.0};
         ChassisScales odomScales {
@@ -40,9 +40,9 @@ namespace robot::drive {
             toUnderlyingType(gearing.internalGearset), 12000
         );
         ConfigurableTimeUtilFactory closedLoopTimeFactory = ConfigurableTimeUtilFactory(
-            20, 5, 200_ms);
+            40, 5, 200_ms);
         ConfigurableTimeUtilFactory strafingTimeFactory = ConfigurableTimeUtilFactory(
-            0.02, 5, 100_ms);
+            0.03, 5, 100_ms);
         std::shared_ptr<Logger> controllerLogger {Logger::getDefaultLogger()};
         controller = std::make_unique<XOdomController>(
             TimeUtilFactory::createDefault(),
