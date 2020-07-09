@@ -262,7 +262,7 @@ void XOdomController::turnToAngle(QAngle iangle, TurnType iturnType, int itimeou
 void XOdomController::turnToPoint(const Point& ipoint, int itimeout) {
     waitForOdomTask();
 
-    const auto angle = OdomMath::computeAngleToPoint(ipoint.inFT(StateMode::FRAME_TRANSFORMATION),
+    const auto angle = -OdomMath::computeAngleToPoint(ipoint.inFT(StateMode::CARTESIAN),
                                                      odometry->getState(StateMode::FRAME_TRANSFORMATION));
 
     LOG_INFO("XOdomController: Computed angle of " +
@@ -310,7 +310,9 @@ void XOdomController::setState(OdomState istate) {
 }
 
 OdomState XOdomController::getState() {
-    return odometry->getState();
+    auto s = odometry->getState(StateMode::CARTESIAN);
+    s.y = -s.y;
+    return s;
 }
 
 bool XOdomController::isSettled() {

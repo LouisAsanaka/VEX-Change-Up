@@ -28,20 +28,24 @@ void autonomous() {
     // pros::delay(300);
     // robot::drive::controller->driveToPoint({30_cm, 0_cm});
     // pros::delay(300);
-    robot::drive::controller->strafeToPose({0.5_m, 0.5_m, 0_deg});
-    robot::drive::controller->waitUntilSettled();
-    std::cout << robot::drive::controller->getState().str() << std::endl;
-    pros::delay(500);
-    robot::drive::controller->strafeToPose({0_m, 1.0_m, 0_deg});
+    robot::drive::controller->setMaxVoltage(0.7 * 12000);
+    robot::drive::controller->strafeToPoint({-0.5_m, 0.5_m});
     robot::drive::controller->waitUntilSettled();
     pros::delay(500);
-    robot::drive::controller->strafeToPose({1.0_m, 0.0_m, 45_deg});
+    robot::drive::controller->strafeToPoint({0_m, 0.5_m});
     robot::drive::controller->waitUntilSettled();
     pros::delay(500);
-    robot::drive::controller->strafeToPose({0_m, 0.0_m, 0_deg});
+    robot::drive::controller->strafeToPoint({-0.5_m, 0_m});
+    robot::drive::controller->waitUntilSettled();
+    pros::delay(500);
+    robot::drive::controller->strafeToPoint({0_m, 0_m});
+    robot::drive::controller->waitUntilSettled();
+    pros::delay(500);
+    robot::drive::controller->turnToAngle(45_deg);
+    pros::delay(500);
+    robot::drive::controller->strafeToPoint({0_m, 1.0_m});
     robot::drive::controller->waitUntilSettled();
     // robot::drive::controller->driveForDistance(0.4_m);
-    std::cout << robot::drive::controller->getState().str() << std::endl;
     master.setText(0, 0, std::to_string(robot::drive::controller->getState().x.convert(meter)));
     /*robot::drive::profileFollower->generatePath({
         {0_m, 0_m, 0_deg},

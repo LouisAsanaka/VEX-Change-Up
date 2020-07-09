@@ -125,11 +125,14 @@ namespace robot::drive {
 		return controller->getState();
 	}*/
 
-    void fieldOrientedControl(double irightSpeed, double iforwardSpeed, double iyaw) {
-        double gyroAngle = 0.0;
+    void fieldOrientedControl(double irightSpeed, double iforwardSpeed, 
+        double iyaw, double ithreshold) 
+    {
+        double gyroAngle = -controller->getState().theta.convert(degree);
         Translation2d input {irightSpeed * meter, iforwardSpeed * meter};
-        input.rotateBy(Rotation2d{-gyroAngle * degree});
-        model->xArcade(input.x().convert(meter), input.y().convert(meter), iyaw);
+        input = input.rotateBy(Rotation2d{-gyroAngle * degree});
+        model->xArcade(input.x().convert(meter), input.y().convert(meter), 
+            iyaw, ithreshold);
     }
 
 	void resetEncoders() {

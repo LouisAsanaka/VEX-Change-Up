@@ -14,7 +14,7 @@ void opcontrol() {
 		double yaw = master.getAnalog(ControllerAnalog::rightX) * DRIVE_SPEED;
 		robot::drive::model->arcade(
 			forwardSpeed, yaw, CONTROLLER_DEADBAND);*/
-		robot::drive::model->xArcade(
+		robot::drive::fieldOrientedControl(
             master.getAnalog(ControllerAnalog::leftX),
             master.getAnalog(ControllerAnalog::leftY),
             master.getAnalog(ControllerAnalog::rightX),

@@ -26,7 +26,8 @@ namespace robot::drive {
     /**
      * Does field-oriented control for the x-drive.
      */
-    void fieldOrientedControl();
+    void fieldOrientedControl(double irightSpeed, double iforwardSpeed, 
+        double iyaw, double ithreshold = 0.05);
 
     /**
      * Resets all the encoders on the drivetrain 

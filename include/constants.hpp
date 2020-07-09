@@ -32,4 +32,4 @@ constexpr QAngle ANGLE_BEFORE_TURN     = 5_deg;
 constexpr double CONTROLLER_DEADBAND = 0.1;
 
 // Component speeds (in percent)
-constexpr double DRIVE_SPEED = 0.7;
+constexpr double DRIVE_SPEED = 1.0;
