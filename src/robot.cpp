@@ -5,6 +5,7 @@ namespace robot {
 
 	void init() {
 		robot::drive::init();
+		robot::intake::init();
 	}
 
 }

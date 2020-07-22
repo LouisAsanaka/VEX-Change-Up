@@ -9,6 +9,7 @@ namespace robot::drive {
     //extern std::shared_ptr<AsyncRamsetePathController> pathFollower;
     extern std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
 	extern std::shared_ptr<XDriveModel> model;
+    extern std::unique_ptr<pros::Imu> gyro;
 
 	void init();
 

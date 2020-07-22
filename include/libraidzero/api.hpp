@@ -10,6 +10,7 @@
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
 #include "libraidzero/controller/pidController.hpp"
 #include "libraidzero/controller/ramseteController.hpp"
+#include "libraidzero/controller/motorController.hpp"
 
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/geometry/rotation2d.hpp"

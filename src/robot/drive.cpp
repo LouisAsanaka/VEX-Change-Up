@@ -1,11 +1,10 @@
 #include "robot/drive.hpp"
 #include "libraidzero/geometry/translation2d.hpp"
 #include "main.h"
-#include "constants.hpp"
 #include "libraidzero/api.hpp"
+#include "constants.hpp"
 #include "okapi/api/util/mathUtil.hpp"
 #include "okapi/impl/util/configurableTimeUtilFactory.hpp"
-#include "pros/rtos.hpp"
 
 namespace robot::drive {
 
@@ -13,6 +12,7 @@ namespace robot::drive {
     //std::shared_ptr<AsyncRamsetePathController> pathFollower;
     std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
     std::shared_ptr<XDriveModel> model;
+    std::unique_ptr<pros::Imu> gyro;
 
 	void init() {
         IterativePosPIDController::Gains DISTANCE_GAINS {0.0035, 0.0, 0.00007};
@@ -103,6 +103,11 @@ namespace robot::drive {
         model->setMaxVelocity(
             DRIVE_SPEED * toUnderlyingType(gearing.internalGearset)
         );
+        gyro = std::make_unique<pros::Imu>(19);
+        gyro->reset();
+        while (gyro->is_calibrating()) { // Stop for about 2 seconds
+            pros::delay(500);
+        }
 
         /*pathFollower = AsyncRamsetePathControllerBuilder()
 			.withLimits({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, DRIVE_MAX_JERK})
@@ -128,7 +133,8 @@ namespace robot::drive {
     void fieldOrientedControl(double irightSpeed, double iforwardSpeed, 
         double iyaw, double ithreshold) 
     {
-        double gyroAngle = -controller->getState().theta.convert(degree);
+        //double gyroAngle = -controller->getState().theta.convert(degree);
+        double gyroAngle = -gyro->get_rotation();
         Translation2d input {irightSpeed * meter, iforwardSpeed * meter};
         input = input.rotateBy(Rotation2d{-gyroAngle * degree});
         model->xArcade(input.x().convert(meter), input.y().convert(meter), 
