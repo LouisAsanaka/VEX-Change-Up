@@ -1,5 +1,4 @@
 #include "robot/drive.hpp"
-#include "libraidzero/geometry/translation2d.hpp"
 #include "main.h"
 #include "libraidzero/api.hpp"
 #include "constants.hpp"
@@ -12,14 +11,13 @@ namespace robot::drive {
     //std::shared_ptr<AsyncRamsetePathController> pathFollower;
     std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
     std::shared_ptr<XDriveModel> model;
-    std::unique_ptr<pros::Imu> gyro;
 
 	void init() {
         IterativePosPIDController::Gains DISTANCE_GAINS {0.0035, 0.0, 0.00007};
         IterativePosPIDController::Gains ANGLE_GAINS {0.002, 0.0, 0.0};
         IterativePosPIDController::Gains TURN_GAINS {0.006, 0.001, 0.000065};
         IterativePosPIDController::Gains STRAFE_DISTANCE_GAINS {9.0, 0.0, 0.002};
-        IterativePosPIDController::Gains STRAFE_ANGLE_GAINS {4.0, 0.0, 0.01};
+        IterativePosPIDController::Gains STRAFE_ANGLE_GAINS {1.9, 0.0, 0.03};
 
         AbstractMotor::GearsetRatioPair gearing {AbstractMotor::gearset::green, 1.0};
         ChassisScales odomScales {
@@ -50,12 +48,20 @@ namespace robot::drive {
             STRAFING_ANGLE_TARGET_ERROR, STRAFING_ANGLE_TARGET_DERIV, STRAFING_ANGLE_TARGET_TIME
         );
         std::shared_ptr<Logger> controllerLogger {Logger::getDefaultLogger()};
+
+        std::shared_ptr<pros::Imu> gyro = std::make_shared<pros::Imu>(19);
+        gyro->reset();
+        while (gyro->is_calibrating()) { // Stop for about 2 seconds
+            pros::delay(500);
+        }
+
         controller = std::make_unique<XOdomController>(
             TimeUtilFactory::createDefault(),
             model,
             std::make_shared<ThreeEncoderOdometry>(
                 TimeUtilFactory::createDefault(), model, odomScales, controllerLogger
             ),
+            gyro,
             std::make_unique<IterativePosPIDController>(DISTANCE_GAINS,
                                                         closedLoopTimeFactory.create(),
                                                         std::make_unique<PassthroughFilter>(),
@@ -103,11 +109,6 @@ namespace robot::drive {
         model->setMaxVelocity(
             DRIVE_SPEED * toUnderlyingType(gearing.internalGearset)
         );
-        gyro = std::make_unique<pros::Imu>(19);
-        gyro->reset();
-        while (gyro->is_calibrating()) { // Stop for about 2 seconds
-            pros::delay(500);
-        }
 
         /*pathFollower = AsyncRamsetePathControllerBuilder()
 			.withLimits({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, DRIVE_MAX_JERK})
@@ -133,10 +134,9 @@ namespace robot::drive {
     void fieldOrientedControl(double irightSpeed, double iforwardSpeed, 
         double iyaw, double ithreshold) 
     {
-        //double gyroAngle = -controller->getState().theta.convert(degree);
-        double gyroAngle = -gyro->get_rotation();
+        auto angle = controller->getGyroRotation();
         Translation2d input {irightSpeed * meter, iforwardSpeed * meter};
-        input = input.rotateBy(Rotation2d{-gyroAngle * degree});
+        input = input.rotateBy(Rotation2d{-angle});
         model->xArcade(input.x().convert(meter), input.y().convert(meter), 
             iyaw, ithreshold);
     }

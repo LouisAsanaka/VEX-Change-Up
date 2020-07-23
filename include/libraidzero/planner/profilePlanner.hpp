@@ -57,10 +57,15 @@ namespace planner {
         static planner::MotionProfile generatePath(const std::vector<Waypoint>& waypoints,
             const PlannerConfig& config, bool fillCoords = false);
 
+        static planner::MotionProfile generatePath(
+            std::initializer_list<UnitableWaypoint> waypoints,
+            const planner::PlannerConfig& config
+        );
+
         static QueryData getQueryData(const std::vector<Waypoint>& waypoints);
 
         static SplinePair calculateSplines(
-            const std::vector<Waypoint>&, const QueryData& queryData);
+            const std::vector<Waypoint>& waypoints, const QueryData& queryData);
 
         static void calculatePathPoints(MotionProfile& profile,
             double cruiseVelocity, double targetAcceleration, double initialVelocity,

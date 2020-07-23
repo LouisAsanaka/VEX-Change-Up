@@ -39,6 +39,35 @@ planner::MotionProfile planner::ProfilePlanner::generatePath(
     return profile;
 }
 
+planner::MotionProfile planner::ProfilePlanner::generatePath(
+    std::initializer_list<planner::UnitableWaypoint> waypoints,
+    const planner::PlannerConfig& config)
+{
+    if (waypoints.size() == 0) {
+        return {};
+    }
+
+    std::vector<planner::Waypoint> points;
+    points.reserve(waypoints.size());
+    for (auto &point : waypoints) {
+        if (point.angle.has_value()) {
+            points.emplace_back(
+                point.x.convert(okapi::meter), 
+                point.y.convert(okapi::meter), 
+                point.angle.value().convert(okapi::degree)
+            );
+        } else {
+            points.emplace_back(
+                point.x.convert(okapi::meter), 
+                point.y.convert(okapi::meter)
+            );
+        }
+    }
+    return planner::ProfilePlanner::generatePath(
+        points, config
+    );
+}
+
 planner::ProfilePlanner::QueryData planner::ProfilePlanner::getQueryData(
     const std::vector<planner::Waypoint>& waypoints)
 {
@@ -163,6 +192,7 @@ void planner::ProfilePlanner::calculatePathPoints(MotionProfile& profile,
             // t = (sqrt(2 a x + v0^2) - v0) / a
             path[i].time = (std::sqrt(2 * targetAcceleration * path[i].position + v02) - v0)
                 / targetAcceleration;
+            path[i].acceleration = targetAcceleration;
             //path[i].time = Math.sqrt(2 * path[i].position / targetAcceleration);
         }
         // Third stage for velocity: we do the same thing as the first stage, but working
@@ -176,6 +206,7 @@ void planner::ProfilePlanner::calculatePathPoints(MotionProfile& profile,
                 break;
             }
             path[j].velocity = velocity;
+            path[j].acceleration = -targetAcceleration;
         }
         // v = v0 + a t
         // t = (v - v0) / a
@@ -188,6 +219,7 @@ void planner::ProfilePlanner::calculatePathPoints(MotionProfile& profile,
         // start of third stage. If we never reach the cruise velocity, this loop never runs.
         for (k = i; k <= j; k++) {
             path[k].velocity = cruiseVelocity;
+            path[k].acceleration = 0.0;
             // t = t0 + delta_t
             // v = delta_x / delta_t
             // delta_t = delta_x / v

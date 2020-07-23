@@ -21,7 +21,7 @@ constexpr double STRAFING_DIST_TARGET_ERROR = 0.03;
 constexpr double STRAFING_DIST_TARGET_DERIV = 5;
 constexpr QTime STRAFING_DIST_TARGET_TIME   = 100_ms;
 
-constexpr double STRAFING_ANGLE_TARGET_ERROR = 1.0;
+constexpr double STRAFING_ANGLE_TARGET_ERROR = 0.07;
 constexpr double STRAFING_ANGLE_TARGET_DERIV = 5;
 constexpr QTime STRAFING_ANGLE_TARGET_TIME   = 100_ms;
 

@@ -2,6 +2,7 @@
 
 #include "main.h"
 #include "libraidzero/geometry/pose2d.hpp"
+#include "libraidzero/planner/profileStructs.hpp"
 #include <vector>
 
 #define lerp(fromV, toV, iFrac) fromV + (toV - fromV) * iFrac
@@ -36,6 +37,7 @@ public:
     using SegmentPtr = std::unique_ptr<Segment, void (*)(void *)>;
 
     static std::vector<Trajectory::State> segmentToStates(const SegmentPtr& traj, int length);
+    static std::vector<Trajectory::State> profileToStates(const planner::MotionProfile& profile);
 private:
     std::vector<State> states;
     double totalTime = 0.0;

@@ -32,6 +32,11 @@ namespace planner {
         double velocity;
 
         /**
+         * Acceleration of the robot in m/s^2
+         */
+        double acceleration;
+
+        /**
          * Time it takes for the robot to go from the previous point to the current point in seconds.
          *
          * <p>This is 0 for the first point in the path.

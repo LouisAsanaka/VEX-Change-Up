@@ -128,3 +128,36 @@ std::vector<Trajectory::State> Trajectory::segmentToStates(const SegmentPtr& tra
     std::cout << "Duration: " << t << " s" << std::endl;
     return states;
 }
+
+std::vector<Trajectory::State> Trajectory::profileToStates(const planner::MotionProfile& profile) {
+    int length = profile.pathPoints.size();
+    std::vector<Trajectory::State> states;
+    states.reserve(length);
+
+    // Accumulate time
+    double t = 0.0; 
+    for (int i = 0; i < length; ++i) {
+        auto point = profile.pathPoints[i];
+        double angularVel;
+        if (i == length - 1) {
+            angularVel = 0.0;
+        } else {
+            auto& nextPoint = profile.pathPoints[i + 1];
+            angularVel = (constrainAngle(nextPoint.angle) - constrainAngle(point.angle))
+                / nextPoint.time;
+        }
+        // No acceleration info
+        states.emplace_back(t, point.velocity, point.acceleration, angularVel,
+            Pose2d{
+                point.x * meter, point.y * meter,
+                Rotation2d{constrainAngle(point.angle) * radian}
+            }
+        );
+        // std::cout << states[i].pose.toString() << std::endl;
+        t += point.time;
+    }
+    std::cout << "-----------------------" << std::endl;
+    std::cout << "Length: " << length << " waypoints" << std::endl;
+    std::cout << "Duration: " << t << " s" << std::endl;
+    return states;
+}

@@ -129,8 +129,6 @@ public:
         ss << "x: " << m_translation.x().convert(meter) << "m, ";
         ss << "y: " << m_translation.y().convert(meter) << "m, ";
         ss << "theta: " << m_rotation.angle().convert(degree) << "deg";
-        // ss << m_translation.x().convert(meter) << ",";
-        // ss << m_translation.y().convert(meter);
         return ss.str();
     }
 private:

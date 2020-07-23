@@ -8,12 +8,14 @@
 #include "libraidzero/geometry/translation2d.hpp"
 #include "okapi/api/odometry/odomMath.hpp"
 #include "okapi/api/odometry/stateMode.hpp"
+#include "okapi/api/units/QAngle.hpp"
 #include "okapi/api/util/timeUtil.hpp"
 
 XOdomController::XOdomController(
     TimeUtil itimeUtil,
     std::shared_ptr<XDriveModel> imodel,
     std::shared_ptr<Odometry> iodometry,
+    std::shared_ptr<pros::Imu> igyro,
     std::unique_ptr<IterativePosPIDController> idistancePid,
     std::unique_ptr<IterativePosPIDController> ianglePid,
     std::unique_ptr<IterativePosPIDController> iturnPid,
@@ -27,6 +29,7 @@ XOdomController::XOdomController(
 ) : timeUtil{std::move(itimeUtil)},
     model{std::move(imodel)},
     odometry{std::move(iodometry)},
+    gyro{std::move(igyro)},
     distancePid{std::move(idistancePid)},
     anglePid{std::move(ianglePid)},
     turnPid{std::move(iturnPid)},
@@ -58,12 +61,12 @@ void XOdomController::loop() {
 
     auto encStartVals = model->getSensorVals();
     std::valarray<std::int32_t> encVals;
-    Pose2d currentPose;
     Translation2d targetTranslation;
     double distanceElapsed = 0.0;
     double angleChange = 0.0;
     auto rate = timeUtil.getRate();
     ControlMode lastMode = ControlMode::None;
+    auto timer = timeUtil.getTimer();
 
     while (!dtorCalled.load(std::memory_order_acquire) && (task->notifyTake(0) == 0U)) {
         /**
@@ -77,6 +80,10 @@ void XOdomController::loop() {
                 encStartVals = model->getSensorVals();
                 if (mode == ControlMode::P2PStrafe) {
                     targetTranslation = targetPose.translation();
+                } else if (mode == ControlMode::Trajectory) {
+                    // Mark the starting time
+                    timer->clearHardMark();
+                    timer->placeHardMark();
                 }
                 newMovement.store(false, std::memory_order_release);
             }
@@ -108,40 +115,13 @@ void XOdomController::loop() {
                         break;
                 }
                 break;
-            case ControlMode::P2PStrafe: {
-                // Use cartesian to flip x & y axes since odom works in a
-                // different frame
-                currentPose = Pose2d::fromOdomState(odometry->getState(StateMode::CARTESIAN));
-
-                std::string message = "XOdomController: Odom Pose=" + currentPose.toString();
-                LOG_INFO(message);
-
-                // Find the direction the drive should move towards in global coordinates
-                auto directionVector = targetTranslation - currentPose.translation();
-
-                // Use the same vector to find the distance to the target
-                double distance = directionVector.norm().convert(meter);
-
-                // Should always be negated since setpoint is always 0, and distance
-                // is always positive. The direction vector only needs the magnitude.
-                double distanceOutput = -strafeDistancePid->step(distance);
-
-                // Normalize the vector & scale it by the 
-                directionVector /= distance;
-                directionVector *= distanceOutput;
-                directionVector = directionVector.rotateBy(-currentPose.rotation());
-                //std::cout << "DirX: " << directionVector.x().convert(meter) << ", DirY:" << directionVector.y().convert(meter) << std::endl;
-
-                double angleOutput = -strafeAnglePid->step(
-                    currentPose.rotation().angle().convert(radian));
-
-                //std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
-
-                model->xArcade(
-                    directionVector.x().convert(meter),
-                    directionVector.y().convert(meter), 
-                    angleOutput
-                );
+            case ControlMode::P2PStrafe:
+                updateStrafeToPose(targetTranslation);
+                break;
+            case ControlMode::Trajectory: {
+                double timeElapsed = timer->getDtFromHardMark().convert(second);
+                auto state = trajectory.sample(timeElapsed);
+                updateStrafeToPose(state.pose.translation());
                 break;
             }
             case ControlMode::None:
@@ -153,6 +133,47 @@ void XOdomController::loop() {
         rate->delayUntil(10_ms);
     }
     LOG_INFO_S("Stopped XOdomController task.");
+}
+
+void XOdomController::updateStrafeToPose(const Translation2d& targetTranslation) {
+    // Use cartesian to flip x & y axes since odom works in a
+    // different frame
+    Pose2d currentPose = Pose2d::fromOdomState(getState());
+
+    std::string message = "XOdomController: Odom Pose=" + currentPose.toString();
+    LOG_INFO(message);
+
+    // Find the direction the drive should move towards in global coordinates
+    auto directionVector = targetTranslation - currentPose.translation();
+
+    // Use the same vector to find the distance to the target
+    double distance = directionVector.norm().convert(meter);
+
+    // Should always be negated since setpoint is always 0, and distance
+    // is always positive. The direction vector only needs the magnitude.
+    double distanceOutput = -strafeDistancePid->step(distance);
+
+    QAngle gyroRotation = getGyroRotation();
+
+    // Normalize the vector & scale it by the PID output
+    directionVector /= distance;
+    directionVector *= distanceOutput;
+    directionVector = directionVector.rotateBy(Rotation2d{-gyroRotation});
+    //std::cout << "DirX: " << directionVector.x().convert(meter) << ", DirY:" << directionVector.y().convert(meter) << std::endl;
+
+    double angleOutput = strafeAnglePid->step(
+        gyroRotation.convert(radian)
+    );
+    //std::cout << gyroHeading.convert(radian) << " | " << strafeAnglePid->getError() << std::endl;
+
+    //std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
+
+    // Negate the angle output since xArcade takes + as clockwise
+    model->xArcade(
+        directionVector.x().convert(meter),
+        directionVector.y().convert(meter), 
+        -angleOutput
+    );
 }
 
 void XOdomController::driveForDistance(QLength idistance, int itimeout) {
@@ -275,16 +296,16 @@ void XOdomController::turnToPoint(const Point& ipoint, int itimeout) {
     }
 }
 
-void XOdomController::strafeToPoint(const Point& ipoint) {
-    strafeToPose(
+void XOdomController::strafeToPointAsync(const Point& ipoint) {
+    strafeToPoseAsync(
         Pose2d{
             Translation2d{ipoint.x, ipoint.y}, 
-            Rotation2d{-1 * odometry->getState().theta}
+            Rotation2d{getGyroRotation()}
         }
     );
 }
 
-void XOdomController::strafeToPose(const Pose2d& ipose) {
+void XOdomController::strafeToPoseAsync(const Pose2d& ipose) {
     waitForOdomTask();
 
     LOG_INFO("XOdomController: strafing to " + ipose.toString());
@@ -305,24 +326,51 @@ void XOdomController::strafeToPose(const Pose2d& ipose) {
     newMovement.store(true, std::memory_order_release);
 }
 
+void XOdomController::followTrajectoryAsync(const Trajectory& itrajectory) {
+    waitForOdomTask();
+
+    LOG_INFO_S("XOdomController: following trajectory");
+
+    strafeDistancePid->reset();
+    strafeDistancePid->flipDisable(false);
+    strafeDistancePid->setTarget(0.0);
+    strafeAnglePid->reset();
+    strafeAnglePid->flipDisable(false);
+    // TODO(louis): Make variable angles possible, but maintain heading for now
+    strafeAnglePid->setTarget(getGyroRotation().convert(radian));
+    distancePid->flipDisable(true);
+    anglePid->flipDisable(true);
+
+    mode = ControlMode::Trajectory;
+    targetPose = itrajectory.getStates().back().pose;
+    trajectory = itrajectory;
+
+    doneLooping.store(false, std::memory_order_release);
+    newMovement.store(true, std::memory_order_release);
+}
+
 void XOdomController::setState(OdomState istate) {
     odometry->setState(istate);
 }
 
 OdomState XOdomController::getState() {
-    auto s = odometry->getState(StateMode::CARTESIAN);
-    s.y = -s.y;
-    return s;
+    return odometry->getState(StateMode::CARTESIAN);
+}
+
+QAngle XOdomController::getGyroRotation() const {
+    return -gyro->get_rotation() * degree;
 }
 
 bool XOdomController::isSettled() {
     switch (mode) {
     case ControlMode::Distance:
-        return distancePid->isSettled() && anglePid->isSettled();
+        return isDistanceSettled();
     case ControlMode::Angle:
-        return turnPid->isSettled();
+        return isAngleSettled();
     case ControlMode::P2PStrafe:
-        return strafeDistancePid->isSettled() && strafeAnglePid->isSettled();
+        return isStrafeSettled();
+    case ControlMode::Trajectory:
+        return isTrajectorySettled();
     default:
         return true;
     }
@@ -347,6 +395,9 @@ XOdomController::SettleResult XOdomController::waitUntilSettled(int itimeout) {
             break;
         case ControlMode::P2PStrafe:
             result = waitForStrafeSettled(itimeout);
+            break;
+        case ControlMode::Trajectory:
+            result = waitForTrajectorySettled(itimeout);
             break;
         default:
             result = SettleResult::Settled;
@@ -373,24 +424,32 @@ XOdomController::SettleResult XOdomController::waitUntilSettled(int itimeout) {
     return result;
 }
 
+bool XOdomController::isDistanceSettled() {
+    return distancePid->isSettled() && anglePid->isSettled();
+}
+
 XOdomController::SettleResult XOdomController::waitForDistanceSettled(int itimeout) {
     LOG_INFO_S("XOdomController: Waiting to settle in distance mode");
 
     uint32_t now = pros::millis();
     bool timeLeft = (pros::millis() - now < itimeout);
-    bool settled = distancePid->isSettled() && anglePid->isSettled();
+    bool settled = isDistanceSettled();
     auto rate = timeUtil.getRate();
     while (!settled && timeLeft) {
         if (mode != ControlMode::Distance) {
             // False will cause the loop to re-enter the switch
-            LOG_WARN_S("XOdomController: Mode changed to angle while waiting in distance!");
+            LOG_WARN_S("XOdomController: Mode changed while waiting in distance!");
             return SettleResult::NotSettled;
         }
-        settled = distancePid->isSettled() && anglePid->isSettled();
+        settled = isDistanceSettled();
         timeLeft = (pros::millis() - now < itimeout);
         rate->delayUntil(10_ms);
     }
     return settled ? SettleResult::Settled : SettleResult::Timeout;
+}
+
+bool XOdomController::isAngleSettled() {
+    return turnPid->isSettled();
 }
 
 XOdomController::SettleResult XOdomController::waitForAngleSettled(int itimeout) {
@@ -398,19 +457,23 @@ XOdomController::SettleResult XOdomController::waitForAngleSettled(int itimeout)
 
     uint32_t now = pros::millis();
     bool timeLeft = (pros::millis() - now < itimeout);
-    bool settled = turnPid->isSettled();
+    bool settled = isAngleSettled();
     auto rate = timeUtil.getRate();
     while (!settled && timeLeft) {
         if (mode != ControlMode::Angle) {
             // False will cause the loop to re-enter the switch
-            LOG_WARN_S("XOdomController: Mode changed to distance while waiting in angle!");
+            LOG_WARN_S("XOdomController: Mode changed while waiting in angle!");
             return SettleResult::NotSettled;
         }
-        settled = turnPid->isSettled();
+        settled = isAngleSettled();
         timeLeft = (pros::millis() - now < itimeout);
         rate->delayUntil(10_ms);
     }
     return settled ? SettleResult::Settled : SettleResult::Timeout;
+}
+
+bool XOdomController::isStrafeSettled() {
+    return strafeDistancePid->isSettled() && strafeAnglePid->isSettled();
 }
 
 XOdomController::SettleResult XOdomController::waitForStrafeSettled(int itimeout) {
@@ -418,15 +481,43 @@ XOdomController::SettleResult XOdomController::waitForStrafeSettled(int itimeout
 
     uint32_t now = pros::millis();
     bool timeLeft = (pros::millis() - now < itimeout);
-    bool settled = strafeDistancePid->isSettled() && strafeAnglePid->isSettled();
+    bool settled = isStrafeSettled();
     auto rate = timeUtil.getRate();
     while (!settled && timeLeft) {
         if (mode != ControlMode::P2PStrafe) {
             // False will cause the loop to re-enter the switch
-            LOG_WARN_S("XOdomController: Mode changed to distance/angle while waiting in strafe!");
+            LOG_WARN_S("XOdomController: Mode changed while waiting in strafe!");
             return SettleResult::NotSettled;
         }
-        settled = strafeDistancePid->isSettled() && strafeAnglePid->isSettled();
+        settled = isStrafeSettled();
+        timeLeft = (pros::millis() - now < itimeout);
+        rate->delayUntil(10_ms);
+    }
+    return settled ? SettleResult::Settled : SettleResult::Timeout;
+}
+
+bool XOdomController::isTrajectorySettled() {
+    // PID loops are settled & the drive is within the target radius
+    auto diff = targetPose - Pose2d::fromOdomState(getState());
+    double distance = diff.translation().norm().convert(meter);
+    LOG_INFO("Traj settle radius: " + std::to_string(distance) + " meters");
+    return strafeDistancePid->isSettled() && strafeAnglePid->isSettled() && distance < 0.05;
+}
+
+XOdomController::SettleResult XOdomController::waitForTrajectorySettled(int itimeout) {
+    LOG_INFO_S("XOdomController: Waiting to settle in trajectory mode");
+
+    uint32_t now = pros::millis();
+    bool timeLeft = (pros::millis() - now < itimeout);
+    bool settled = isTrajectorySettled();
+    auto rate = timeUtil.getRate();
+    while (!settled && timeLeft) {
+        if (mode != ControlMode::Trajectory) {
+            // False will cause the loop to re-enter the switch
+            LOG_WARN_S("XOdomController: Mode changed while waiting in trajectory!");
+            return SettleResult::NotSettled;
+        }
+        settled = isTrajectorySettled();
         timeLeft = (pros::millis() - now < itimeout);
         rate->delayUntil(10_ms);
     }
