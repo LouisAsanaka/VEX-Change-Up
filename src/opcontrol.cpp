@@ -2,8 +2,6 @@
 #include "opcontrol.hpp"
 #include "robot.hpp"
 #include "constants.hpp"
-#include "robot/drive.hpp"
-#include "robot/intake.hpp"
 
 void opcontrol() {
 	Controller master {ControllerId::master};
@@ -21,12 +19,20 @@ void opcontrol() {
             master.getAnalog(ControllerAnalog::rightX),
             0.05
         );
+		//std::cout << robot::drive::controller->getState().str() << std::endl;
 		if (master.getDigital(ControllerDigital::R1)) {
 			robot::intake::spinIn(1.0);
 		} else if (master.getDigital(ControllerDigital::R2)) {
 			robot::intake::spinOut(1.0);
 		} else {
 			robot::intake::stop();
+		}
+		if (master.getDigital(ControllerDigital::L1)) {
+			robot::conveyor::moveUp(1.0);
+		} else if (master.getDigital(ControllerDigital::L2)) {
+			robot::conveyor::moveDown(1.0);
+		} else {
+			robot::conveyor::stop();
 		}
 		pros::delay(20);
 	}
