@@ -1,4 +1,4 @@
-# VEX-Path-Following
+# VEX-Change-Up
 
 Notes:
 - The OkapiLib `OdomState` uses the following conventions:
