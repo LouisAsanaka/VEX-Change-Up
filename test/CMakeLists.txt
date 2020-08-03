@@ -13,9 +13,15 @@ include_directories(
 )
 
 add_library(pathgen STATIC
+    ../src/libraidzero/util/miscUtil.cpp
 	../src/libraidzero/planner/profilePlanner.cpp 
 	../src/libraidzero/planner/polynomialFunction.cpp
 	../src/libraidzero/planner/hermiteInterpolator.cpp
+    ../src/libraidzero/geometry/rotation2d.cpp
+    ../src/libraidzero/geometry/translation2d.cpp
+    ../src/libraidzero/geometry/transform2d.cpp
+    ../src/libraidzero/geometry/pose2d.cpp
+    ../src/libraidzero/trajectory/trajectory.cpp
 )
 target_include_directories(pathgen PUBLIC "../include")
 
