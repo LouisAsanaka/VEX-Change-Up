@@ -1,23 +1,19 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
 # Controls when the action will run. Triggers the workflow on push or pull request.
 on: [push, pull_request]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
     container:
       image: okapilib/ubuntu-base:18.04
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - name: Checkout project repo
+      uses: actions/checkout@v2
+      with:
+        path: main
     
     # Installs ninja-build & cppcheck
     - name: Install tools
@@ -28,23 +24,41 @@ jobs:
         
     - name: Build project
       shell: bash
+      working-directory: main
       run: prosv5 make
-
-    - name: Configure CMake
-      shell: bash
-      working-directory: test
-      run: cmake -GNinja .
-
-    - name: Run Ninja
-      shell: bash
-      working-directory: test
-      run: ninja
+    
+    - name: Clone OkapiLib repo
+      uses: actions/checkout@v2
+      with:
+        repository: LouisAsanaka/OkapiLib
+        path: okapilib
       
-    - name: Run the tests
+    - name: Build OkapiLib
       shell: bash
-      working-directory: test
-      run: ./out/UnitTests
+      working-directory: okapilib
+      run: |
+        mkdir cmake-build-debug && cd cmake-build-debug
+        cmake -DCMAKE_BUILD_TYPE=Debug -GNinja ..
+        ninja
+    
+    - name: Copy OkapiLib binary
+      shell: bash
+      run: cp okapilib/cmake-build-debug/libOkapiLibV5.a main/test/lib
+
+    - name: Build tests
+      shell: bash
+      working-directory: main/test
+      run: |
+        mkdir build && cd build
+        cmake -GNinja ..
+        ninja
+      
+    - name: Run tests
+      shell: bash
+      working-directory: main/test/build
+      run: ./UnitTests
       
     - name: Run cppcheck
       shell: bash
+      working-directory: main
       run: cppcheck --template=gcc --enable=all --std=c++11 --force --suppress=missingIncludeSystem -i ./test .
