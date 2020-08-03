@@ -16,5 +16,5 @@ _deps
 .ninja_log
 build.ninja
 
-# Output
-out/
+# Build
+build/
