@@ -19,18 +19,16 @@ TEST_CASE("testing stuff") {
         planner::PlannerConfig{1.0, 1.0, 0.0},
         true
     );
-    Trajectory traj{Trajectory::profileToStates(mp)};
+    // Trajectory traj{Trajectory::profileToStates(mp)};
     
-    std::cout << "Total time: " << traj.getTotalTime() << std::endl;
-    for (double i = 0; i <= traj.getTotalTime() + 1; i += 0.1) {
-        auto pose = traj.sample(i).pose;
-        std::cout 
-            << pose.translation().x().convert(okapi::meter) << ","
-            << pose.translation().y().convert(okapi::meter) << ","
-            << i
-            << std::endl;
-    }
-
-    CHECK(mp.totalLength == doctest::Approx(std::sqrt(2 * 2 + 2 * 2)));
+    // std::cout << "Total time: " << traj.getTotalTime() << std::endl;
+    // for (double i = 0; i <= traj.getTotalTime() + 1; i += 0.1) {
+    //     auto pose = traj.sample(i).pose;
+    //     std::cout 
+    //         << pose.translation().x().convert(okapi::meter) << ","
+    //         << pose.translation().y().convert(okapi::meter) << ","
+    //         << i
+    //         << std::endl;
+    // }
     CHECK((2_m).convert(meter) == 2);
 }
