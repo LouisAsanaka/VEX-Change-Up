@@ -28,25 +28,23 @@ jobs:
         
     - name: Build project
       shell: bash
-      working-directory: $GITHUB_WORKSPACE
       run: prosv5 make
 
     - name: Configure CMake
       shell: bash
-      working-directory: $GITHUB_WORKSPACE/test
+      working-directory: test
       run: cmake -GNinja .
 
     - name: Run Ninja
       shell: bash
-      working-directory: $GITHUB_WORKSPACE/test
+      working-directory: test
       run: ninja
       
     - name: Run the tests
       shell: bash
-      working-directory: $GITHUB_WORKSPACE/test
+      working-directory: test
       run: ./out/UnitTests
       
     - name: Run cppcheck
       shell: bash
-      working-directory: $GITHUB_WORKSPACE
       run: cppcheck --template=gcc --enable=all --std=c++11 --force --suppress=missingIncludeSystem -i ./test .
