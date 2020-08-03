@@ -6,7 +6,7 @@
         {
             "label": "Run test",
             "type": "shell",
-            "command": "ninja && .\\out\\UnitTests.exe",
+            "command": "rmdir /S /Q build && mkdir build && cd build && cmake -GNinja .. && ninja && .\\UnitTests.exe",
             "group": "test",
             "presentation": {
                 "reveal": "always",
