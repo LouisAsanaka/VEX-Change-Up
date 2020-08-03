@@ -1,6 +1,9 @@
 #pragma once
 
-#include "main.h"
+#include "okapi/api/units/QAngle.hpp"
+
+using namespace okapi::literals;
+
 /**
  * A rotation in a 2d coordinate frame represented a point on the unit circle
  * (cosine and sine).
@@ -17,7 +20,7 @@ public:
      *
      * @param value The value of the angle in radians.
      */
-    Rotation2d(QAngle value);  // NOLINT(runtime/explicit)
+    Rotation2d(okapi::QAngle value);  // NOLINT(runtime/explicit)
   
     /**
      * Constructs a Rotation2d with the given x and y (cosine and sine)
@@ -129,7 +132,7 @@ public:
      *
      * @return The angle of the rotation.
      */
-    QAngle angle() const { return m_value; }
+    okapi::QAngle angle() const { return m_value; }
   
     /**
      * Returns the cosine of the rotation.
@@ -153,7 +156,7 @@ public:
     double tan() const { return m_sin / m_cos; }
 
 private:
-    QAngle m_value = 0_deg;
+    okapi::QAngle m_value = 0_deg;
     double m_cos = 1;
     double m_sin = 0;
 };

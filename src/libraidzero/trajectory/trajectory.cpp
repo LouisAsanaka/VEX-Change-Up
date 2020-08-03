@@ -1,11 +1,11 @@
 #include "libraidzero/trajectory/trajectory.hpp"
-#include "main.h"
 #include "libraidzero/util/miscUtil.hpp"
 #include <utility>
+#include <iostream>
 #include <vector>
 
-Trajectory::Trajectory(std::vector<State> list) : 
-    totalTime(list.back().t), states(std::move(list)) {
+Trajectory::Trajectory(const std::vector<State>& list) : 
+    totalTime(list.back().t), states(list) {
 }   
 
 Trajectory::State Trajectory::interpolate(const State& start, const State& end, double i) const {
@@ -41,7 +41,7 @@ Trajectory::State Trajectory::interpolate(const State& start, const State& end, 
     // distance between the two endpoints.
     const double interpolationFrac =
         newS / end.pose.translation().distance(
-            start.pose.translation()).convert(meter);
+            start.pose.translation()).convert(okapi::meter);
 
     return {
         newT, newV, start.accel, lerp(start.angularVel, end.angularVel, i),
@@ -116,16 +116,16 @@ std::vector<Trajectory::State> Trajectory::segmentToStates(const SegmentPtr& tra
         }
         states.emplace_back(t, segment.velocity, segment.acceleration, angularVel,
             Pose2d{
-                segment.x * meter, segment.y * meter,
-                Rotation2d{constrainAngle(segment.heading) * radian}
+                segment.x * okapi::meter, segment.y * okapi::meter,
+                Rotation2d{constrainAngle(segment.heading) * okapi::radian}
             }
         );
         // std::cout << states[i].pose.toString() << std::endl;
         t += segment.dt;
     }
-    std::cout << "-----------------------" << std::endl;
-    std::cout << "Length: " << length << " waypoints" << std::endl;
-    std::cout << "Duration: " << t << " s" << std::endl;
+    // std::cout << "-----------------------" << std::endl;
+    // std::cout << "Length: " << length << " waypoints" << std::endl;
+    // std::cout << "Duration: " << t << " s" << std::endl;
     return states;
 }
 
@@ -149,15 +149,15 @@ std::vector<Trajectory::State> Trajectory::profileToStates(const planner::Motion
         // No acceleration info
         states.emplace_back(t, point.velocity, point.acceleration, angularVel,
             Pose2d{
-                point.x * meter, point.y * meter,
-                Rotation2d{constrainAngle(point.angle) * radian}
+                point.x * okapi::meter, point.y * okapi::meter,
+                Rotation2d{constrainAngle(point.angle) * okapi::radian}
             }
         );
         // std::cout << states[i].pose.toString() << std::endl;
         t += point.time;
     }
-    std::cout << "-----------------------" << std::endl;
-    std::cout << "Length: " << length << " waypoints" << std::endl;
-    std::cout << "Duration: " << t << " s" << std::endl;
+    // std::cout << "-----------------------" << std::endl;
+    // std::cout << "Length: " << length << " waypoints" << std::endl;
+    // std::cout << "Duration: " << t << " s" << std::endl;
     return states;
 }

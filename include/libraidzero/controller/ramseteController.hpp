@@ -1,8 +1,9 @@
 #pragma once
 
-#include "main.h"
 #include "libraidzero/kinematics/chassisSpeeds.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
+#include "okapi/api/units/QAngularSpeed.hpp"
+#include "okapi/api/units/QSpeed.hpp"
 
 class RamseteController {
 public:
@@ -30,8 +31,8 @@ public:
      * @param angularVelocityRef The desired angular velocity.
      */
     ChassisSpeeds calculate(const Pose2d& currentPose, const Pose2d& poseRef,
-        QSpeed linearVelocityRef,
-        QAngularSpeed angularVelocityRef);
+        okapi::QSpeed linearVelocityRef,
+        okapi::QAngularSpeed angularVelocityRef);
 
 	void setGains(double ib, double izeta);
 

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "main.h"
 #include "libraidzero/geometry/transform2d.hpp"
 #include "libraidzero/geometry/translation2d.hpp"
+#include "okapi/api/odometry/odomState.hpp"
+#include "okapi/api/units/QLength.hpp"
 #include <sstream>
 
 /**
@@ -32,7 +33,7 @@ public:
      * @param y The y component of the translational component of the pose.
      * @param rotation The rotational component of the pose.
      */
-    Pose2d(QLength x, QLength y, Rotation2d rotation);
+    Pose2d(okapi::QLength x, okapi::QLength y, Rotation2d rotation);
 
     /**
      * Transforms the pose by the given transformation and returns the new
@@ -122,13 +123,13 @@ public:
      */
     Pose2d relativeTo(const Pose2d& other) const;
 
-    static Pose2d fromOdomState(const OdomState& state);
+    static Pose2d fromOdomState(const okapi::OdomState& state);
 
     std::string toString() const {
         std::stringstream ss;
-        ss << "x: " << m_translation.x().convert(meter) << "m, ";
-        ss << "y: " << m_translation.y().convert(meter) << "m, ";
-        ss << "theta: " << m_rotation.angle().convert(degree) << "deg";
+        ss << "x: " << m_translation.x().convert(okapi::meter) << "m, ";
+        ss << "y: " << m_translation.y().convert(okapi::meter) << "m, ";
+        ss << "theta: " << m_rotation.angle().convert(okapi::degree) << "deg";
         return ss.str();
     }
 private:

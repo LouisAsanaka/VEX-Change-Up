@@ -1,11 +1,10 @@
 #include "libraidzero/geometry/pose2d.hpp"
-#include "main.h"
 #include <cmath>
 
 Pose2d::Pose2d(Translation2d translation, Rotation2d rotation)
     : m_translation(translation), m_rotation(rotation) {}
 
-Pose2d::Pose2d(QLength x, QLength y, Rotation2d rotation)
+Pose2d::Pose2d(okapi::QLength x, okapi::QLength y, Rotation2d rotation)
     : m_translation(x, y), m_rotation(rotation) {}
 
 Pose2d Pose2d::operator+(const Transform2d& other) const {
@@ -41,6 +40,6 @@ Pose2d Pose2d::relativeTo(const Pose2d& other) const {
     return {transform.translation(), transform.rotation()};
 }
 
-Pose2d Pose2d::fromOdomState(const OdomState& state) {
+Pose2d Pose2d::fromOdomState(const okapi::OdomState& state) {
     return {Translation2d{state.x, state.y}, Rotation2d{-1 * state.theta}};
 }

@@ -1,16 +1,15 @@
 #include "libraidzero/geometry/translation2d.hpp"
-#include "main.h"
 
-Translation2d::Translation2d(QLength nx, QLength ny)
+Translation2d::Translation2d(okapi::QLength nx, okapi::QLength ny)
     : m_x(nx), m_y(ny) {}
 
-QLength Translation2d::distance(const Translation2d& other) const {
-    return std::hypot(other.m_x.convert(meter) - m_x.convert(meter), 
-                      other.m_y.convert(meter) - m_y.convert(meter)) * meter;
+okapi::QLength Translation2d::distance(const Translation2d& other) const {
+    return std::hypot(other.m_x.convert(okapi::meter) - m_x.convert(okapi::meter), 
+                      other.m_y.convert(okapi::meter) - m_y.convert(okapi::meter)) * okapi::meter;
 }
 
-QLength Translation2d::norm() const {
-    return std::hypot(m_x.convert(meter), m_y.convert(meter)) * meter;
+okapi::QLength Translation2d::norm() const {
+    return std::hypot(m_x.convert(okapi::meter), m_y.convert(okapi::meter)) * okapi::meter;
 }
 
 Translation2d Translation2d::rotateBy(const Rotation2d& other) const {

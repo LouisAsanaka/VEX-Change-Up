@@ -1,12 +1,13 @@
 #pragma once
 
-#include "main.h"
 #include "libraidzero/kinematics/chassisSpeeds.hpp"
 #include "libraidzero/kinematics/driveWheelSpeeds.hpp"
+#include "okapi/api/chassis/controller/chassisScales.hpp"
+#include "okapi/api/units/QLength.hpp"
 
 class Kinematics {
 public:
-    explicit Kinematics(ChassisScales iscales) : wheelTrack{iscales.wheelTrack} {}
+    explicit Kinematics(okapi::ChassisScales iscales) : wheelTrack{iscales.wheelTrack} {}
 
     /**
      * Returns a chassis speed from left and right component velocities using
@@ -34,5 +35,5 @@ public:
                 chassisSpeeds.vx + wheelTrack / 2 * chassisSpeeds.omega / 1_rad};
     }
 
-    QLength wheelTrack;
+    okapi::QLength wheelTrack;
 };

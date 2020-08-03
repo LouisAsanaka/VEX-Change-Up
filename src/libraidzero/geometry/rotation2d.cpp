@@ -1,11 +1,10 @@
 #include "libraidzero/geometry/rotation2d.hpp"
-#include "main.h"
 #include <cmath>
 
-Rotation2d::Rotation2d(QAngle value)
+Rotation2d::Rotation2d(okapi::QAngle value)
     : m_value(value),
-      m_cos(std::cos(value.convert(radian))),
-      m_sin(std::sin(value.convert(radian))) {}
+      m_cos(std::cos(value.convert(okapi::radian))),
+      m_sin(std::sin(value.convert(okapi::radian))) {}
 
 Rotation2d::Rotation2d(double x, double y) {
     const auto magnitude = std::hypot(x, y);
@@ -16,7 +15,7 @@ Rotation2d::Rotation2d(double x, double y) {
         m_sin = 0.0;
         m_cos = 1.0;
     }
-    m_value = std::atan2(m_sin, m_cos) * radian;
+    m_value = std::atan2(m_sin, m_cos) * okapi::radian;
 }
 
 Rotation2d Rotation2d::operator+(const Rotation2d& other) const {
@@ -28,7 +27,7 @@ Rotation2d& Rotation2d::operator+=(const Rotation2d& other) {
   double nsin = cos() * other.sin() + sin() * other.cos();
   m_cos = ncos;
   m_sin = nsin;
-  m_value = std::atan2(m_sin, m_cos) * radian;
+  m_value = std::atan2(m_sin, m_cos) * okapi::radian;
   return *this;
 }
 

@@ -1,5 +1,4 @@
 #include "libraidzero/builder/asyncRamsetePathControllerBuilder.hpp"
-#include "main.h"
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
 
 AsyncRamsetePathControllerBuilder::AsyncRamsetePathControllerBuilder(

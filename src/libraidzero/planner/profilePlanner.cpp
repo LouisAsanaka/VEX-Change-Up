@@ -10,7 +10,7 @@
 
 planner::MotionProfile planner::ProfilePlanner::generatePath(
     const std::vector<Waypoint>& waypoints,
-    const PlannerConfig& config, const bool fillCoords)
+    const PlannerConfig& config, bool fillCoords)
 {
     auto queryData = getQueryData(waypoints);
     auto splines = calculateSplines(waypoints, queryData);
@@ -41,7 +41,7 @@ planner::MotionProfile planner::ProfilePlanner::generatePath(
 
 planner::MotionProfile planner::ProfilePlanner::generatePath(
     std::initializer_list<planner::UnitableWaypoint> waypoints,
-    const planner::PlannerConfig& config)
+    const planner::PlannerConfig& config, bool fillCoords)
 {
     if (waypoints.size() == 0) {
         return {};
@@ -64,7 +64,7 @@ planner::MotionProfile planner::ProfilePlanner::generatePath(
         }
     }
     return planner::ProfilePlanner::generatePath(
-        points, config
+        points, config, fillCoords
     );
 }
 

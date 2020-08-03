@@ -59,7 +59,7 @@ namespace planner {
 
         static planner::MotionProfile generatePath(
             std::initializer_list<UnitableWaypoint> waypoints,
-            const planner::PlannerConfig& config
+            const planner::PlannerConfig& config, bool fillCoords = false
         );
 
         static QueryData getQueryData(const std::vector<Waypoint>& waypoints);

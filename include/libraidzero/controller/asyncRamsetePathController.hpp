@@ -1,6 +1,5 @@
 #pragma once
 
-#include "main.h"
 #include "libraidzero/controller/ramseteController.hpp"
 #include "libraidzero/controller/util/ramseteUtil.hpp"
 #include "libraidzero/kinematics/kinematics.hpp"

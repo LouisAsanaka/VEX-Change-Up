@@ -1,6 +1,5 @@
 #pragma once
 
-#include "main.h"
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
 #include "libraidzero/controller/util/ramseteUtil.hpp"
 

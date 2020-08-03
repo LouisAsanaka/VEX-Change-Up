@@ -1,12 +1,13 @@
 #pragma once
 
-#include "main.h"
+#include "okapi/api/units/QAngularSpeed.hpp"
+#include "okapi/api/units/QSpeed.hpp"
 
 struct ChassisSpeeds {
     // +x is forward
-    QSpeed vx;
+    okapi::QSpeed vx;
     // +y is to the right
-    QSpeed vy;
+    okapi::QSpeed vy;
     // +omega is counter-clockwise
-    QAngularSpeed omega;
+    okapi::QAngularSpeed omega;
 };

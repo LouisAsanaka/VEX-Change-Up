@@ -1,5 +1,4 @@
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
-#include "main.h"
 #include "libraidzero/util/miscUtil.hpp"
 #include "libraidzero/controller/util/ramseteUtil.hpp"
 #include "libraidzero/geometry/pose2d.hpp"

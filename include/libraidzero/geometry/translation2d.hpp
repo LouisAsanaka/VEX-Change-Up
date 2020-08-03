@@ -1,7 +1,9 @@
 #pragma once
 
 #include "libraidzero/geometry/rotation2d.hpp"
-#include "main.h"
+#include "okapi/api/units/QLength.hpp"
+
+using namespace okapi::literals;
 
 /**
  * Represents a translation in 2d space.
@@ -25,7 +27,7 @@ public:
      * @param nx The x component of the translation.
      * @param ny The y component of the translation.
      */
-    Translation2d(QLength nx, QLength ny);
+    Translation2d(okapi::QLength nx, okapi::QLength ny);
   
     /**
      * Calculates the distance between two translations in 2d space.
@@ -37,28 +39,28 @@ public:
      *
      * @return The distance between the two translations.
      */
-    QLength distance(const Translation2d& other) const;
+    okapi::QLength distance(const Translation2d& other) const;
   
     /**
      * Returns the X component of the translation.
      *
      * @return The x component of the translation.
      */
-    QLength x() const { return m_x; }
+    okapi::QLength x() const { return m_x; }
   
     /**
      * Returns the Y component of the translation.
      *
      * @return The y component of the translation.
      */
-    QLength y() const { return m_y; }
+    okapi::QLength y() const { return m_y; }
   
     /**
      * Returns the norm, or distance from the origin to the translation.
      *
      * @return The norm of the translation.
      */
-    QLength norm() const;
+    okapi::QLength norm() const;
   
     /**
      * Applies a rotation to the translation in 2d space.
@@ -198,6 +200,6 @@ public:
     Translation2d& operator/=(double scalar);
 
 private:
-    QLength m_x = 0_m;
-    QLength m_y = 0_m;
+    okapi::QLength m_x = 0_m;
+    okapi::QLength m_y = 0_m;
 };

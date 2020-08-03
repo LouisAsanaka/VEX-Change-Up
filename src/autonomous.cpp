@@ -35,7 +35,8 @@ void autonomous() {
             {0_m, 0_m, 0_deg},
             {0.45_m, 0.45_m, 0_deg},
             {0_m, 0.9_m, 0_deg}
-        }, planner::PlannerConfig{DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, 0.0}
+        }, planner::PlannerConfig{DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, 0.0},
+        true
     );
     Trajectory traj{Trajectory::profileToStates(profile)};
 

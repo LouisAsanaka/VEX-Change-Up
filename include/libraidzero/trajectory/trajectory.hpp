@@ -1,9 +1,10 @@
 #pragma once
 
-#include "main.h"
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/planner/profileStructs.hpp"
+#include "okapi/pathfinder/include/pathfinder/structs.h"
 #include <vector>
+#include <memory>
 
 #define lerp(fromV, toV, iFrac) fromV + (toV - fromV) * iFrac
 
@@ -26,7 +27,7 @@ public:
     };
 
     Trajectory() = default;
-    explicit Trajectory(std::vector<State> list);
+    explicit Trajectory(const std::vector<State>& list);
 
     const std::vector<State>& getStates() const { return states; }
     double getTotalTime() const { return totalTime; }
