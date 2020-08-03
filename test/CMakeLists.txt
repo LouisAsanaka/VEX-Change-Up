@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/out)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/out)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/out)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(
 	"./include"
@@ -23,4 +24,4 @@ file(GLOB_RECURSE TEST_SOURCES "./src/*.cpp")
 add_executable(UnitTests ${TEST_SOURCES})
 
 #target_link_libraries(UnitTests pathgen ${CMAKE_SOURCE_DIR}/lib/OkapiLibV5.lib)
-target_link_libraries(UnitTests pathgen)
+target_link_libraries(UnitTests pathgen ${CMAKE_SOURCE_DIR}/lib/libOkapiLibV5.a)
