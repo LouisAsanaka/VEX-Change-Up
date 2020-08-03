@@ -4,15 +4,24 @@
 #include "libraidzero/controller/util/ramseteUtil.hpp"
 #include "libraidzero/kinematics/kinematics.hpp"
 #include "libraidzero/trajectory/trajectory.hpp"
+#include "okapi/api/chassis/controller/odomChassisController.hpp"
+#include "okapi/api/chassis/model/chassisModel.hpp"
+#include "okapi/api/control/util/pathfinderUtil.hpp"
+#include "okapi/api/device/motor/abstractMotor.hpp"
+#include "okapi/api/units/QAngularSpeed.hpp"
+#include "okapi/api/units/QSpeed.hpp"
+#include "okapi/api/util/abstractRate.hpp"
+#include "okapi/api/util/logging.hpp"
+#include "okapi/api/util/timeUtil.hpp"
 #include <vector>
 #include <map>
 #include <cstdio>
 
 class AsyncRamsetePathController {
 public:
-    AsyncRamsetePathController(const TimeUtil &itimeUtil,
-                               const PathfinderLimits &ilimits,
-                               const std::shared_ptr<OdomChassisController> &ichassis,
+    AsyncRamsetePathController(const okapi::TimeUtil &itimeUtil,
+                               const okapi::PathfinderLimits &ilimits,
+                               const std::shared_ptr<okapi::OdomChassisController> &ichassis,
                                const RamseteConstants &iramseteConstants = RamseteConstants{});
 
     AsyncRamsetePathController(AsyncRamsetePathController &&other) = delete;
@@ -32,7 +41,7 @@ public:
      * @param ipathId A unique identifier to save the path with.
      * @param storePath Whether to store the path to a CSV file.
      */
-    void generatePath(std::initializer_list<PathfinderPoint> iwaypoints, const std::string &ipathId,
+    void generatePath(std::initializer_list<okapi::PathfinderPoint> iwaypoints, const std::string &ipathId,
                       bool storePath = false);
   
     /**
@@ -161,19 +170,19 @@ protected:
     using TrajectoryPtr = std::unique_ptr<TrajectoryCandidate, void (*)(TrajectoryCandidate *)>;
     using SegmentPtr = std::unique_ptr<Segment, void (*)(void *)>;
 
-    std::shared_ptr<OdomChassisController> chassis;
+    std::shared_ptr<okapi::OdomChassisController> chassis;
     std::shared_ptr<RamseteController> ramseteController;
 
     int timeout = 0;
 
-    std::shared_ptr<Logger> logger;
+    std::shared_ptr<okapi::Logger> logger;
     std::map<std::string, Trajectory> paths{};
-    PathfinderLimits limits;
-    std::shared_ptr<ChassisModel> model;
+    okapi::PathfinderLimits limits;
+    std::shared_ptr<okapi::ChassisModel> model;
     Kinematics kinematics;
-    ChassisScales scales;
-    AbstractMotor::GearsetRatioPair pair;
-    TimeUtil timeUtil;
+    okapi::ChassisScales scales;
+    okapi::AbstractMotor::GearsetRatioPair pair;
+    okapi::TimeUtil timeUtil;
 
     // This must be locked when accessing the current path
     CrossplatformMutex currentPathMutex;
@@ -194,12 +203,12 @@ protected:
      * Follow the supplied trajectory. Must follow the disabled lifecycle.
      */
     virtual void executeSinglePath(const Trajectory &trajectory, 
-                                   std::unique_ptr<AbstractRate> rate);
+                                   std::unique_ptr<okapi::AbstractRate> rate);
 
     std::string getPathErrorMessage(const std::vector<Waypoint> &points, const std::string &ipathId, 
                                     int length);
 
-    QAngularSpeed convertLinearToRotational(QSpeed linear) const;
+    okapi::QAngularSpeed convertLinearToRotational(okapi::QSpeed linear) const;
 
     /**
      * Joins and escapes a directory and file name

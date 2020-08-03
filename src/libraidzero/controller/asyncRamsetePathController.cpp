@@ -6,6 +6,8 @@
 #include "libraidzero/kinematics/kinematics.hpp"
 #include "libraidzero/trajectory/trajectory.hpp"
 #include "okapi/api/util/logging.hpp"
+#include "okapi/api/util/mathUtil.hpp"
+#include "okapi/pathfinder/include/pathfinder.h"
 
 #include <algorithm>
 #include <mutex>
@@ -14,11 +16,11 @@
 #include <utility>
 
 AsyncRamsetePathController::AsyncRamsetePathController(
-    const TimeUtil &itimeUtil,
-    const PathfinderLimits &ilimits,
-    const std::shared_ptr<OdomChassisController> &ichassis,
+    const okapi::TimeUtil &itimeUtil,
+    const okapi::PathfinderLimits &ilimits,
+    const std::shared_ptr<okapi::OdomChassisController> &ichassis,
     const RamseteConstants &iramseteConstants)
-    : logger(Logger::getDefaultLogger()),
+    : logger(okapi::Logger::getDefaultLogger()),
       limits(ilimits),
       model(ichassis->getModel()),
       scales(ichassis->getChassisScales()),
@@ -41,7 +43,7 @@ AsyncRamsetePathController::~AsyncRamsetePathController() {
     delete task;
 }
 
-void AsyncRamsetePathController::generatePath(std::initializer_list<PathfinderPoint> iwaypoints,
+void AsyncRamsetePathController::generatePath(std::initializer_list<okapi::PathfinderPoint> iwaypoints,
                                               const std::string &ipathId, bool storePath) {
     if (iwaypoints.size() == 0) {
         // No point in generating a path
@@ -54,9 +56,9 @@ void AsyncRamsetePathController::generatePath(std::initializer_list<PathfinderPo
     for (auto &point : iwaypoints) {
         points.push_back(
             Waypoint{
-                point.x.convert(meter), 
-                point.y.convert(meter), 
-                point.theta.convert(radian)
+                point.x.convert(okapi::meter), 
+                point.y.convert(okapi::meter), 
+                point.theta.convert(okapi::radian)
             });
     }
     LOG_INFO_S("AsyncRamsetePathController: Preparing trajectory");
@@ -143,7 +145,7 @@ void AsyncRamsetePathController::setTarget(std::string ipathId, bool resetState,
             std::to_string(ibackwards) + ", imirrored=" + std::to_string(imirrored) + ")");
     currentPath = ipathId;
     shouldResetState.store(resetState, std::memory_order_release);
-    direction.store(boolToSign(!ibackwards), std::memory_order_release);
+    direction.store(okapi::boolToSign(!ibackwards), std::memory_order_release);
     mirrored.store(imirrored, std::memory_order_release);
     isRunning.store(true, std::memory_order_release);
 }
@@ -261,14 +263,14 @@ void AsyncRamsetePathController::loop() {
 }
 
 void AsyncRamsetePathController::executeSinglePath(const Trajectory& trajectory,
-                                                   std::unique_ptr<AbstractRate> rate) {
+                                                   std::unique_ptr<okapi::AbstractRate> rate) {
     const int reversed = direction.load(std::memory_order_acquire);
     const bool followMirrored = mirrored.load(std::memory_order_acquire);
 
     if (shouldResetState.load(std::memory_order_acquire)) {
         std::scoped_lock lock(currentPathMutex);
         const Pose2d& startingPose = trajectory.getStates()[0].pose;
-        chassis->setState(OdomState{
+        chassis->setState(okapi::OdomState{
             startingPose.translation().x(), startingPose.translation().y(),
             startingPose.rotation().angle()
         });
@@ -285,19 +287,19 @@ void AsyncRamsetePathController::executeSinglePath(const Trajectory& trajectory,
         // if a running path is asked to be removed at the moment this loop is executing
         std::scoped_lock lock(currentPathMutex);
 
-        Trajectory::State sampled = trajectory.sample(timer->getDtFromStart().convert(second));
+        Trajectory::State sampled = trajectory.sample(timer->getDtFromStart().convert(okapi::second));
 
         auto odomPose = Pose2d::fromOdomState(chassis->getState());
         auto wheelSpeeds = kinematics.toWheelSpeeds(
             ramseteController->calculate(
-                odomPose, sampled.pose, sampled.vel * mps, sampled.angularVel * radps
+                odomPose, sampled.pose, sampled.vel * okapi::mps, sampled.angularVel * okapi::radps
             )
         );
         std::string message = "AsyncRamsetePathController: Odom Pose=" + odomPose.toString() + ", Target Pose=" + sampled.pose.toString();
         LOG_DEBUG(message);
 
-        const auto leftRPM = convertLinearToRotational(wheelSpeeds.left).convert(rpm);
-        const auto rightRPM = convertLinearToRotational(wheelSpeeds.right).convert(rpm);
+        const auto leftRPM = convertLinearToRotational(wheelSpeeds.left).convert(okapi::rpm);
+        const auto rightRPM = convertLinearToRotational(wheelSpeeds.right).convert(okapi::rpm);
 
         const double leftSpeed = leftRPM / toUnderlyingType(pair.internalGearset) * reversed;
         const double rightSpeed = rightRPM / toUnderlyingType(pair.internalGearset) * reversed;
@@ -333,7 +335,7 @@ std::string AsyncRamsetePathController::getPathErrorMessage(const std::vector<Wa
                             [&](std::string a, Waypoint b) { return a + ", " + pointToString(b); });
 }
 
-QAngularSpeed AsyncRamsetePathController::convertLinearToRotational(QSpeed linear) const {
+okapi::QAngularSpeed AsyncRamsetePathController::convertLinearToRotational(okapi::QSpeed linear) const {
     return (linear * (360_deg / (scales.wheelDiameter * 1_pi))) * pair.ratio;
 }
 

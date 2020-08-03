@@ -2,19 +2,19 @@
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
 
 AsyncRamsetePathControllerBuilder::AsyncRamsetePathControllerBuilder(
-    std::shared_ptr<Logger> ilogger)
+    std::shared_ptr<okapi::Logger> ilogger)
     : logger(std::move(ilogger)) {
 }
 
 AsyncRamsetePathControllerBuilder &AsyncRamsetePathControllerBuilder::withOutput(
-    const std::shared_ptr<OdomChassisController> &icontroller) {
+    const std::shared_ptr<okapi::OdomChassisController> &icontroller) {
     hasChassisController = true;
     chassisController = icontroller;
     return *this;
 }
 
 AsyncRamsetePathControllerBuilder &
-AsyncRamsetePathControllerBuilder::withLimits(const PathfinderLimits &ilimits) {
+AsyncRamsetePathControllerBuilder::withLimits(const okapi::PathfinderLimits &ilimits) {
     hasLimits = true;
     limits = ilimits;
     return *this;
@@ -27,13 +27,13 @@ AsyncRamsetePathControllerBuilder::withConstants(const RamseteConstants &iconsta
 }
 
 AsyncRamsetePathControllerBuilder &
-AsyncRamsetePathControllerBuilder::withTimeUtilFactory(const TimeUtilFactory &itimeUtilFactory) {
+AsyncRamsetePathControllerBuilder::withTimeUtilFactory(const okapi::TimeUtilFactory &itimeUtilFactory) {
     timeUtilFactory = itimeUtilFactory;
     return *this;
 }
 
 AsyncRamsetePathControllerBuilder &
-AsyncRamsetePathControllerBuilder::withLogger(const std::shared_ptr<Logger> &ilogger) {
+AsyncRamsetePathControllerBuilder::withLogger(const std::shared_ptr<okapi::Logger> &ilogger) {
     controllerLogger = ilogger;
     return *this;
 }

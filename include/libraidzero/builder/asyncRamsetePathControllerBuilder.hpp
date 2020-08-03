@@ -2,6 +2,8 @@
 
 #include "libraidzero/controller/asyncRamsetePathController.hpp"
 #include "libraidzero/controller/util/ramseteUtil.hpp"
+#include "okapi/api/util/logging.hpp"
+#include "okapi/impl/util/timeUtilFactory.hpp"
 
 class AsyncRamsetePathControllerBuilder {
 public:
@@ -12,7 +14,7 @@ public:
      * @param ilogger The logger this instance will log to.
      */
     explicit AsyncRamsetePathControllerBuilder(
-        std::shared_ptr<Logger> ilogger = Logger::getDefaultLogger());
+        std::shared_ptr<okapi::Logger> ilogger = okapi::Logger::getDefaultLogger());
 
     /**
      * Sets the output. This must be used with buildRamsetePathController().
@@ -21,7 +23,7 @@ public:
      * @return An ongoing builder.
      */
     AsyncRamsetePathControllerBuilder &
-    withOutput(const std::shared_ptr<OdomChassisController> &icontroller);
+    withOutput(const std::shared_ptr<okapi::OdomChassisController> &icontroller);
 
     /**
      * Sets the limits.
@@ -29,7 +31,7 @@ public:
      * @param ilimits The limits.
      * @return An ongoing builder.
      */
-    AsyncRamsetePathControllerBuilder &withLimits(const PathfinderLimits &ilimits);
+    AsyncRamsetePathControllerBuilder &withLimits(const okapi::PathfinderLimits &ilimits);
 
     /**
      * Sets the Ramsete controller constants.
@@ -46,7 +48,7 @@ public:
      * @param itimeUtilFactory The TimeUtilFactory.
      * @return An ongoing builder.
      */
-    AsyncRamsetePathControllerBuilder &withTimeUtilFactory(const TimeUtilFactory &itimeUtilFactory);
+    AsyncRamsetePathControllerBuilder &withTimeUtilFactory(const okapi::TimeUtilFactory &itimeUtilFactory);
 
     /**
      * Sets the logger.
@@ -54,7 +56,7 @@ public:
      * @param ilogger The logger.
      * @return An ongoing builder.
      */
-    AsyncRamsetePathControllerBuilder &withLogger(const std::shared_ptr<Logger> &ilogger);
+    AsyncRamsetePathControllerBuilder &withLogger(const std::shared_ptr<okapi::Logger> &ilogger);
 
     /**
      * Parents the internal tasks started by this builder to the current task, meaning they will be
@@ -89,17 +91,17 @@ public:
     std::shared_ptr<AsyncRamsetePathController> buildRamsetePathController();
 
 private:
-    std::shared_ptr<Logger> logger;
+    std::shared_ptr<okapi::Logger> logger;
 
     bool hasLimits{false};
-    PathfinderLimits limits;
+    okapi::PathfinderLimits limits;
 
     RamseteConstants constants{};
 
     bool hasChassisController{false};
-    std::shared_ptr<OdomChassisController> chassisController;
-    TimeUtilFactory timeUtilFactory = TimeUtilFactory();
-    std::shared_ptr<Logger> controllerLogger = Logger::getDefaultLogger();
+    std::shared_ptr<okapi::OdomChassisController> chassisController;
+    okapi::TimeUtilFactory timeUtilFactory = okapi::TimeUtilFactory();
+    std::shared_ptr<okapi::Logger> controllerLogger = okapi::Logger::getDefaultLogger();
 
     bool isParentedToCurrentTask{true};
 };
