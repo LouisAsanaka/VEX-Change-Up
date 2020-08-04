@@ -10,7 +10,7 @@ namespace robot::drive {
 	std::unique_ptr<XOdomController> controller;
     //std::shared_ptr<AsyncRamsetePathController> pathFollower;
     std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
-    std::shared_ptr<XDriveModel> model;
+    std::shared_ptr<ThreeEncoderGyroXDriveModel> model;
 
 	void init() {
         IterativePosPIDController::Gains DISTANCE_GAINS {0.0035, 0.0, 0.00007};
@@ -30,12 +30,14 @@ namespace robot::drive {
         auto leftEnc = std::make_shared<ADIEncoder>('C', 'D', true);
         auto rightEnc = std::make_shared<ADIEncoder>('G', 'H', false);
         auto midEnc = std::make_shared<ADIEncoder>('E', 'F', true);
-        model = std::make_shared<ThreeEncoderXDriveModel>(
+        auto gyro = std::make_shared<pros::Imu>(19);
+        model = std::make_shared<ThreeEncoderGyroXDriveModel>(
             leftLeader,
             rightLeader,
             std::make_shared<Motor>(-3),
             std::make_shared<Motor>(4),
             leftEnc, rightEnc, midEnc,
+            gyro,
             toUnderlyingType(gearing.internalGearset), 12000
         );
         ConfigurableTimeUtilFactory closedLoopTimeFactory = ConfigurableTimeUtilFactory(
@@ -49,19 +51,12 @@ namespace robot::drive {
         );
         std::shared_ptr<Logger> controllerLogger {Logger::getDefaultLogger()};
 
-        std::shared_ptr<pros::Imu> gyro = std::make_shared<pros::Imu>(19);
-        gyro->reset();
-        while (gyro->is_calibrating()) { // Stop for about 2 seconds
-            pros::delay(500);
-        }
-
         controller = std::make_unique<XOdomController>(
             TimeUtilFactory::createDefault(),
             model,
-            std::make_shared<ThreeEncoderOdometry>(
+            std::make_shared<ThreeEncoderGyroOdometry>(
                 TimeUtilFactory::createDefault(), model, odomScales, controllerLogger
             ),
-            gyro,
             std::make_unique<IterativePosPIDController>(DISTANCE_GAINS,
                                                         closedLoopTimeFactory.create(),
                                                         std::make_unique<PassthroughFilter>(),
@@ -110,6 +105,11 @@ namespace robot::drive {
             DRIVE_SPEED * toUnderlyingType(gearing.internalGearset)
         );
 
+        gyro->reset();
+        while (gyro->is_calibrating()) { // Stop for about 2 seconds
+            pros::delay(500);
+        }
+
         /*pathFollower = AsyncRamsetePathControllerBuilder()
 			.withLimits({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, DRIVE_MAX_JERK})
 			.withOutput(controller)
@@ -134,7 +134,7 @@ namespace robot::drive {
     void fieldOrientedControl(double irightSpeed, double iforwardSpeed, 
         double iyaw, double ithreshold) 
     {
-        auto angle = controller->getGyroRotation();
+        auto angle = -model->getSensorVals()[3] * degree;
         Translation2d input {irightSpeed * meter, iforwardSpeed * meter};
         input = input.rotateBy(Rotation2d{-angle});
         model->xArcade(input.x().convert(meter), input.y().convert(meter), 

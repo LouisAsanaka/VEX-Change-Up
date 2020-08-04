@@ -1,8 +1,11 @@
 #pragma once
 
-#include "libraidzero/controller/iodomController.hpp"
+#include "libraidzero/chassis/controller/iodomController.hpp"
+#include "libraidzero/geometry/pose2d.hpp"
+#include "libraidzero/trajectory/trajectory.hpp"
 #include "okapi/api/chassis/controller/chassisScales.hpp"
 #include "okapi/api/chassis/model/chassisModel.hpp"
+#include "okapi/api/chassis/model/xDriveModel.hpp"
 #include "okapi/api/control/iterative/iterativePosPidController.hpp"
 #include "okapi/api/odometry/odomState.hpp"
 #include "okapi/api/odometry/odometry.hpp"
@@ -10,46 +13,51 @@
 #include "okapi/api/units/QAngle.hpp"
 #include "okapi/api/units/QLength.hpp"
 #include "okapi/api/util/timeUtil.hpp"
+#include "pros/imu.hpp"
 #include <atomic>
 
 using namespace okapi;
 
-class OdomController : public IOdomController {
+class XOdomController : public IOdomController {
 public:
     /**
-     * Chassis control using odometry.
+     * X-drive chassis control using odometry.
      *
      * @param itimeUtil The TimeUtil.
-     * @param imodel The ChassisModel used to read from sensors/write to motors.
+     * @param imodel The XDriveModel used to read from sensors/write to motors.
      * @param iodometry The odometry to read state estimates from.
      * @param idistancePid The PID controller that controls chassis distance for driving
      * straight.
      * @param ianglePid The PID controller that controls chassis angle for driving straight.
      * @param iturnPid The PID controller that controls chassis angle for turning.
+     * @param istrafeDistancePid The PID controller that controls chassis distance while strafing.
+     * @param istrafeAnglePid The PID controller that controls chassis angle while strafing.
      * @param igearset The internal gearset and external ratio used on the drive motors.
      * @param iscales The ChassisScales.
      * @param idistanceThreshold minimum length movement (smaller movements will be skipped)
      * @param iturnThreshold minimum angle turn (smaller turns will be skipped)
      * @param ilogger The logger this instance will log to.
      */
-    OdomController(
+    XOdomController(
         TimeUtil itimeUtil,
-        std::shared_ptr<ChassisModel> imodel,
+        std::shared_ptr<XDriveModel> imodel,
         std::shared_ptr<Odometry> iodometry,
         std::unique_ptr<IterativePosPIDController> idistancePid,
         std::unique_ptr<IterativePosPIDController> ianglePid,
         std::unique_ptr<IterativePosPIDController> iturnPid,
+        std::unique_ptr<IterativePosPIDController> istrafeDistancePid,
+        std::unique_ptr<IterativePosPIDController> istrafeAnglePid,
         const AbstractMotor::GearsetRatioPair& igearset,
         const ChassisScales& iscales,
         QLength idistanceThreshold = 0_mm,
         QAngle iturnThreshold = 0_deg,
         std::shared_ptr<Logger> ilogger = Logger::getDefaultLogger());
 
-    OdomController(const OdomController&) = delete;
-    OdomController(OdomController&& other) = delete;
-    OdomController &operator=(const OdomController& other) = delete;
-    OdomController &operator=(OdomController&& other) = delete;
-    ~OdomController();
+    XOdomController(const XOdomController&) = delete;
+    XOdomController(XOdomController&& other) = delete;
+    XOdomController &operator=(const XOdomController& other) = delete;
+    XOdomController &operator=(XOdomController&& other) = delete;
+    ~XOdomController();
 
     /**
      * Drives the robot for the specified distance and wait until the robot
@@ -110,7 +118,29 @@ public:
      * @param itimeout The timeout for the movement
      */
     void turnToPoint(const Point& ipoint, int itimeout = 0) override;
-    
+
+    /**
+     * Makes the robot strafe from the current pose to the target point, while
+     * maintaining heading.
+     *
+     * @param ipoint The target point
+     */
+    void strafeToPointAsync(const Point& ipoint);
+
+    /**
+     * Makes the robot strafe from the current pose to the target one.
+     *
+     * @param ipose The target pose
+     */
+    void strafeToPoseAsync(const Pose2d& ipose);
+
+    /**
+     * Makes the robot follow a trajectory.
+     *
+     * @param itrajectory The trajectory to follow
+     */
+    void followTrajectoryAsync(const Trajectory& itrajectory);
+
     /**
      * Sets the current odometry state.
      *
@@ -202,11 +232,17 @@ public:
      */
     void waitForOdomTask() override;
 protected:
-    std::shared_ptr<ChassisModel> model {nullptr};
+    std::shared_ptr<XDriveModel> model {nullptr};
     std::shared_ptr<Odometry> odometry {nullptr};
     std::unique_ptr<IterativePosPIDController> distancePid {nullptr};
     std::unique_ptr<IterativePosPIDController> anglePid {nullptr};
     std::unique_ptr<IterativePosPIDController> turnPid {nullptr};
+    std::unique_ptr<IterativePosPIDController> strafeDistancePid {nullptr};
+    std::unique_ptr<IterativePosPIDController> strafeAnglePid {nullptr};
+
+    Pose2d targetPose;
+
+    Trajectory trajectory;
 
     AbstractMotor::GearsetRatioPair gearsetRatioPair;
     ChassisScales scales;
@@ -220,7 +256,7 @@ protected:
     TurnType turnType = TurnType::PointTurn;
 
     enum class ControlMode {
-        Distance, Angle, None
+        Distance, Angle, P2PStrafe, Trajectory, None
     };
     ControlMode mode = ControlMode::None;
 
@@ -230,9 +266,23 @@ protected:
     std::atomic_bool newMovement {false};
     std::atomic_bool doneLooping {true};
     std::atomic_bool doneLoopingSeen {true};
+    
+    /**
+     * Does one iteration of strafing to the target translation.
+     * 
+     * @param targetTranslation the translation to strafe to
+     */
+    void updateStrafeToPose(const Translation2d& targetTranslation);
+    
+    /**
+     * Returns whether the drive has settled in distance mode.
+     * 
+     * @return is drive settled
+     */
+    bool isDistanceSettled();
 
     /**
-     * Wait for the distance setup (distancePid and anglePid) to settle.
+     * Waits for the distance setup (distancePid and anglePid) to settle.
      *
      * @param itimeout the timeout period for the distance movement
      *
@@ -241,13 +291,53 @@ protected:
     SettleResult waitForDistanceSettled(int itimeout);
 
     /**
-     * Wait for the angle setup (anglePid) to settle.
+     * Returns whether the drive has settled in angle mode.
+     * 
+     * @return is drive settled
+     */
+    bool isAngleSettled();
+
+    /**
+     * Waits for the angle setup (anglePid) to settle.
      *
      * @param itimeout the timeout period for the angle movement
      *
      * @return the settle result
      */
     SettleResult waitForAngleSettled(int itimeout);
+
+    /**
+     * Returns whether the drive has settled in strafe mode.
+     * 
+     * @return is drive settled
+     */
+    bool isStrafeSettled();
+
+    /**
+     * Waits for the strafe setup (strafeDistancePid & strafeAnglePid) to settle.
+     *
+     * @param itimeout the timeout period for the strafe movement
+     *
+     * @return the settle result
+     */
+    SettleResult waitForStrafeSettled(int itimeout);
+
+    /**
+     * Returns whether the drive has settled in trajectory mode.
+     * 
+     * @return is drive settled
+     */
+    bool isTrajectorySettled();
+
+    /**
+     * Waits for the trajectory setup (strafeDistancePid & strafeAnglePid &
+     * target radius) to settle.
+     *
+     * @param itimeout the timeout period for the trajectory movement
+     *
+     * @return the settle result
+     */
+    SettleResult waitForTrajectorySettled(int itimeout);
 
     /**
      * Stops all the controllers and the ChassisModel.

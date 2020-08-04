@@ -1,8 +1,8 @@
 #include <atomic>
 #include <utility>
 
-#include "libraidzero/controller/xOdomController.hpp"
-#include "libraidzero/controller/iodomController.hpp"
+#include "libraidzero/chassis/controller/xOdomController.hpp"
+#include "libraidzero/chassis/controller/iodomController.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/geometry/rotation2d.hpp"
 #include "libraidzero/geometry/translation2d.hpp"
@@ -15,7 +15,6 @@ XOdomController::XOdomController(
     TimeUtil itimeUtil,
     std::shared_ptr<XDriveModel> imodel,
     std::shared_ptr<Odometry> iodometry,
-    std::shared_ptr<pros::Imu> igyro,
     std::unique_ptr<IterativePosPIDController> idistancePid,
     std::unique_ptr<IterativePosPIDController> ianglePid,
     std::unique_ptr<IterativePosPIDController> iturnPid,
@@ -29,7 +28,6 @@ XOdomController::XOdomController(
 ) : timeUtil{std::move(itimeUtil)},
     model{std::move(imodel)},
     odometry{std::move(iodometry)},
-    gyro{std::move(igyro)},
     distancePid{std::move(idistancePid)},
     anglePid{std::move(ianglePid)},
     turnPid{std::move(iturnPid)},
@@ -153,7 +151,7 @@ void XOdomController::updateStrafeToPose(const Translation2d& targetTranslation)
     // is always positive. The direction vector only needs the magnitude.
     double distanceOutput = -strafeDistancePid->step(distance);
 
-    QAngle gyroRotation = getGyroRotation();
+    QAngle gyroRotation = -currentPose.rotation().angle();
 
     // Normalize the vector & scale it by the PID output
     directionVector /= distance;
@@ -300,7 +298,7 @@ void XOdomController::strafeToPointAsync(const Point& ipoint) {
     strafeToPoseAsync(
         Pose2d{
             Translation2d{ipoint.x, ipoint.y}, 
-            Rotation2d{getGyroRotation()}
+            Rotation2d{-getState().theta}
         }
     );
 }
@@ -337,7 +335,7 @@ void XOdomController::followTrajectoryAsync(const Trajectory& itrajectory) {
     strafeAnglePid->reset();
     strafeAnglePid->flipDisable(false);
     // TODO(louis): Make variable angles possible, but maintain heading for now
-    strafeAnglePid->setTarget(getGyroRotation().convert(radian));
+    strafeAnglePid->setTarget(-getState().theta.convert(radian));
     distancePid->flipDisable(true);
     anglePid->flipDisable(true);
 
@@ -355,10 +353,6 @@ void XOdomController::setState(OdomState istate) {
 
 OdomState XOdomController::getState() {
     return odometry->getState(StateMode::CARTESIAN);
-}
-
-QAngle XOdomController::getGyroRotation() const {
-    return -gyro->get_rotation() * degree;
 }
 
 bool XOdomController::isSettled() {

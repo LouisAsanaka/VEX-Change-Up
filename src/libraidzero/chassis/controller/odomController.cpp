@@ -1,7 +1,7 @@
 #include <atomic>
 #include <utility>
 
-#include "libraidzero/controller/odomController.hpp"
+#include "libraidzero/chassis/controller/odomController.hpp"
 #include "okapi/api/odometry/odomMath.hpp"
 #include "okapi/api/odometry/stateMode.hpp"
 #include "okapi/api/util/timeUtil.hpp"
