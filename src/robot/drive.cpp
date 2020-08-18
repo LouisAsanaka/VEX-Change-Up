@@ -134,7 +134,7 @@ namespace robot::drive {
     void fieldOrientedControl(double irightSpeed, double iforwardSpeed, 
         double iyaw, double ithreshold) 
     {
-        auto angle = -model->getSensorVals()[3] * degree;
+        auto angle = -model->getSensorVals()[3] / GYRO_RESOLUTION * degree;
         Translation2d input {irightSpeed * meter, iforwardSpeed * meter};
         input = input.rotateBy(Rotation2d{-angle});
         model->xArcade(input.x().convert(meter), input.y().convert(meter), 

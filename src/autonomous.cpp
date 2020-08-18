@@ -40,9 +40,11 @@ void autonomous() {
     );
     Trajectory traj{Trajectory::profileToStates(profile)};
 
+    master.setText(0, 0, "start");
     robot::drive::controller->followTrajectoryAsync(traj);
     robot::drive::controller->waitUntilSettled();
     pros::delay(300);
+    master.setText(0, 0, "item");
     
     // robot::drive::controller->strafeToPoseAsync({-0.4_m, 0.4_m, 90_deg});
     // robot::drive::controller->waitUntilSettled();

@@ -27,10 +27,10 @@ std::valarray<std::int32_t> ThreeEncoderGyroXDriveModel::getSensorVals() const {
     return std::valarray<std::int32_t>{static_cast<std::int32_t>(leftSensor->get()),
                                        static_cast<std::int32_t>(rightSensor->get()),
                                        static_cast<std::int32_t>(middleSensor->get()),
-                                       static_cast<std::int32_t>(gyro->get_rotation() - headingOffset)};
+                                       static_cast<std::int32_t>(gyro->get_rotation() * GYRO_RESOLUTION) - headingOffset};
 }
 
 void ThreeEncoderGyroXDriveModel::resetSensors() {
     ThreeEncoderXDriveModel::resetSensors();
-    headingOffset = gyro->get_rotation();
+    headingOffset = static_cast<int>(gyro->get_rotation() * GYRO_RESOLUTION);
 }

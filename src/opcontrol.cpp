@@ -6,6 +6,8 @@
 void opcontrol() {
 	Controller master {ControllerId::master};
 
+	robot::drive::resetEncoders();
+	robot::drive::controller->setState({0_m, 0_m, 0_deg});
 	while (true) {
 		// Dual joystick arcade
         // Source: https://www.vexforum.com/t/robot-c-arcade-drive/43348/2
@@ -19,7 +21,7 @@ void opcontrol() {
             master.getAnalog(ControllerAnalog::rightX),
             0.05
         );
-		//std::cout << robot::drive::controller->getState().str() << std::endl;
+		std::cout << robot::drive::controller->getState().str() << std::endl;
 		if (master.getDigital(ControllerDigital::R1)) {
 			robot::intake::spinIn(1.0);
 		} else if (master.getDigital(ControllerDigital::R2)) {

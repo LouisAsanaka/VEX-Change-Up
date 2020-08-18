@@ -11,6 +11,8 @@
 #include "okapi/api/chassis/model/xDriveModel.hpp"
 #include "pros/imu.hpp"
 
+#define GYRO_RESOLUTION 100.0
+
 class ThreeEncoderGyroXDriveModel : public okapi::ThreeEncoderXDriveModel {
     public:
     /**
@@ -51,5 +53,5 @@ class ThreeEncoderGyroXDriveModel : public okapi::ThreeEncoderXDriveModel {
   
     protected:
     std::shared_ptr<pros::Imu> gyro;
-    double headingOffset = 0.0;
+    int headingOffset = 0;
 };

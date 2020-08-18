@@ -6,6 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 #include "libraidzero/odometry/threeEncoderGyroOdometry.hpp"
+#include "libraidzero/chassis/model/threeEncoderGyroXDriveModel.hpp"
 #include "okapi/api/odometry/threeEncoderOdometry.hpp"
 #include "okapi/api/units/QSpeed.hpp"
 #include "okapi/api/util/mathUtil.hpp"
@@ -45,7 +46,8 @@ okapi::OdomState ThreeEncoderGyroOdometry::odomMathStep(const std::valarray<std:
     const double deltaR = itickDiff[1] / chassisScales.straight;
 
     // double deltaTheta = (deltaL - deltaR) / chassisScales.wheelTrack.convert(okapi::meter);
-    double deltaTheta = itickDiff[3] * okapi::pi / 180;
+    double deltaTheta = itickDiff[3] / GYRO_RESOLUTION * okapi::pi / 180;
+    std::cout << "Delta theta: " << deltaTheta << std::endl;
     double localOffX, localOffY;
 
     const auto deltaM = static_cast<const double>(
