@@ -2,6 +2,7 @@
 #include "opcontrol.hpp"
 #include "robot.hpp"
 #include "constants.hpp"
+#include "robot/drive.hpp"
 
 void opcontrol() {
 	Controller master {ControllerId::master};
@@ -22,6 +23,9 @@ void opcontrol() {
             0.05
         );
 		std::cout << robot::drive::controller->getState().str() << std::endl;
+		if (master.getDigital(ControllerDigital::A)) {
+			robot::drive::model->resetGyro();
+		}
 		if (master.getDigital(ControllerDigital::R1)) {
 			robot::intake::spinIn(1.0);
 		} else if (master.getDigital(ControllerDigital::R2)) {

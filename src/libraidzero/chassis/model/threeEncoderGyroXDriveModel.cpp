@@ -32,5 +32,9 @@ std::valarray<std::int32_t> ThreeEncoderGyroXDriveModel::getSensorVals() const {
 
 void ThreeEncoderGyroXDriveModel::resetSensors() {
     ThreeEncoderXDriveModel::resetSensors();
+    resetGyro();
+}
+
+void ThreeEncoderGyroXDriveModel::resetGyro() {
     headingOffset = static_cast<int>(gyro->get_rotation() * GYRO_RESOLUTION);
 }

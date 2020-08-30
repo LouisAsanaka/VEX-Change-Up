@@ -3,6 +3,7 @@
 
 #include "libraidzero/chassis/controller/xOdomController.hpp"
 #include "libraidzero/chassis/controller/iodomController.hpp"
+#include "libraidzero/chassis/model/threeEncoderGyroXDriveModel.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/geometry/rotation2d.hpp"
 #include "libraidzero/geometry/translation2d.hpp"
@@ -118,7 +119,7 @@ void XOdomController::loop() {
                 break;
             case ControlMode::Trajectory: {
                 double timeElapsed = timer->getDtFromHardMark().convert(second);
-                auto state = trajectory.sample(timeElapsed);
+                auto state = trajectory.sample(timeElapsed + 0.6);
                 updateStrafeToPose(state.pose.translation());
                 break;
             }
@@ -151,7 +152,8 @@ void XOdomController::updateStrafeToPose(const Translation2d& targetTranslation)
     // is always positive. The direction vector only needs the magnitude.
     double distanceOutput = -strafeDistancePid->step(distance);
 
-    QAngle gyroRotation = -currentPose.rotation().angle();
+    // QAngle gyroRotation = -currentPose.rotation().angle();
+    QAngle gyroRotation = -model->getSensorVals()[3] / GYRO_RESOLUTION * degree;
 
     // Normalize the vector & scale it by the PID output
     directionVector /= distance;
@@ -335,7 +337,7 @@ void XOdomController::followTrajectoryAsync(const Trajectory& itrajectory) {
     strafeAnglePid->reset();
     strafeAnglePid->flipDisable(false);
     // TODO(louis): Make variable angles possible, but maintain heading for now
-    strafeAnglePid->setTarget(-getState().theta.convert(radian));
+    strafeAnglePid->setTarget(-model->getSensorVals()[3] * okapi::pi / 180);
     distancePid->flipDisable(true);
     anglePid->flipDisable(true);
 

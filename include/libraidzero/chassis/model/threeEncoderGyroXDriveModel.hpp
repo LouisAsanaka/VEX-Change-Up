@@ -50,6 +50,8 @@ class ThreeEncoderGyroXDriveModel : public okapi::ThreeEncoderXDriveModel {
      * Reset the sensors to their zero point.
      */
     void resetSensors() override;
+
+    void resetGyro();
   
     protected:
     std::shared_ptr<pros::Imu> gyro;

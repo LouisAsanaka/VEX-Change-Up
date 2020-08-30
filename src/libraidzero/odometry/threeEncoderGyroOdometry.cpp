@@ -45,9 +45,9 @@ okapi::OdomState ThreeEncoderGyroOdometry::odomMathStep(const std::valarray<std:
     const double deltaL = itickDiff[0] / chassisScales.straight;
     const double deltaR = itickDiff[1] / chassisScales.straight;
 
-    // double deltaTheta = (deltaL - deltaR) / chassisScales.wheelTrack.convert(okapi::meter);
-    double deltaTheta = itickDiff[3] / GYRO_RESOLUTION * okapi::pi / 180;
-    std::cout << "Delta theta: " << deltaTheta << std::endl;
+    double deltaTheta = (deltaL - deltaR) / chassisScales.wheelTrack.convert(okapi::meter);
+    //double deltaTheta = itickDiff[3] / GYRO_RESOLUTION * okapi::pi / 180;
+    //std::cout << "Delta theta: " << deltaTheta << std::endl;
     double localOffX, localOffY;
 
     const auto deltaM = static_cast<const double>(

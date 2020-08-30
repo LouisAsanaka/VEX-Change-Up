@@ -30,11 +30,23 @@ void autonomous() {
     // pros::delay(300);
     // robot::drive::controller->driveToPoint({30_cm, 0_cm});
     // pros::delay(300);
+
+    robot::drive::controller->strafeToPoseAsync({0.3_m, 0.3_m, 0_deg});
+    robot::drive::controller->waitUntilSettled();
+    pros::delay(300);
+    robot::drive::controller->strafeToPoseAsync({0.6_m, 0.0_m, -45_deg});
+    robot::drive::controller->waitUntilSettled();
+    pros::delay(300);
+    robot::drive::controller->strafeToPoseAsync({0.0_m, 0.0_m, 0_deg});
+    robot::drive::controller->waitUntilSettled();
+    pros::delay(300);
+    return;
+
     auto profile = planner::ProfilePlanner::generatePath(
         {
             {0_m, 0_m, 0_deg},
-            {0.45_m, 0.45_m, 0_deg},
-            {0_m, 0.9_m, 0_deg}
+            {0.4_m, 0.4_m, -90_deg},
+            {0.8_m, 0.0_m, 0_deg}
         }, planner::PlannerConfig{DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, 0.0},
         true
     );

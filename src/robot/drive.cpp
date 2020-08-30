@@ -16,7 +16,7 @@ namespace robot::drive {
         IterativePosPIDController::Gains DISTANCE_GAINS {0.0035, 0.0, 0.00007};
         IterativePosPIDController::Gains ANGLE_GAINS {0.002, 0.0, 0.0};
         IterativePosPIDController::Gains TURN_GAINS {0.006, 0.001, 0.000065};
-        IterativePosPIDController::Gains STRAFE_DISTANCE_GAINS {9.0, 0.0, 0.002};
+        IterativePosPIDController::Gains STRAFE_DISTANCE_GAINS {7.0, 0.0, 0.002};
         IterativePosPIDController::Gains STRAFE_ANGLE_GAINS {1.9, 0.0, 0.03};
 
         AbstractMotor::GearsetRatioPair gearing {AbstractMotor::gearset::green, 1.0};
@@ -105,6 +105,7 @@ namespace robot::drive {
             DRIVE_SPEED * toUnderlyingType(gearing.internalGearset)
         );
 
+        pros::delay(1000);
         gyro->reset();
         while (gyro->is_calibrating()) { // Stop for about 2 seconds
             pros::delay(500);
@@ -135,6 +136,7 @@ namespace robot::drive {
         double iyaw, double ithreshold) 
     {
         auto angle = -model->getSensorVals()[3] / GYRO_RESOLUTION * degree;
+        //std::cout << "Angle: " << angle.convert(degree) << std::endl;
         Translation2d input {irightSpeed * meter, iforwardSpeed * meter};
         input = input.rotateBy(Rotation2d{-angle});
         model->xArcade(input.x().convert(meter), input.y().convert(meter), 
