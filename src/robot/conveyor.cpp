@@ -4,26 +4,43 @@
 
 namespace robot::conveyor {
 
-	std::unique_ptr<MotorController> controller;
+	std::unique_ptr<MotorController> topController;
+	std::unique_ptr<MotorController> bottomController;
 
 	void init() {
-		MotorGroup motors {{-9, 10}};
-		motors.setGearing(AbstractMotor::gearset::green);
-		motors.setBrakeMode(AbstractMotor::brakeMode::brake);
+		MotorGroup topMotor {{10}};
+		topMotor.setGearing(AbstractMotor::gearset::blue);
+		topMotor.setBrakeMode(AbstractMotor::brakeMode::brake);
 
-		controller = std::make_unique<MotorController>(motors);
-		controller->tarePosition();
+		topController = std::make_unique<MotorController>(topMotor);
+		topController->tarePosition();
+
+		MotorGroup bottomMotor {{-9}};
+		bottomMotor.setGearing(AbstractMotor::gearset::blue);
+		bottomMotor.setBrakeMode(AbstractMotor::brakeMode::brake);
+
+		bottomController = std::make_unique<MotorController>(bottomMotor);
+		bottomController->tarePosition();
 	}
 
-    void moveUp(double voltageScale) {
-		controller->moveVoltage(voltageScale);
+    void moveUp(double voltageScale, Position position) {
+		if (position == Position::Top) {
+			topController->moveVoltage(voltageScale);
+		} else {
+			bottomController->moveVoltage(voltageScale);
+		}
 	}
 
-	void moveDown(double voltageScale) {
-		controller->moveVoltage(-voltageScale);
+	void moveDown(double voltageScale, Position position) {
+		if (position == Position::Top) {
+			topController->moveVoltage(-voltageScale);
+		} else {
+			bottomController->moveVoltage(-voltageScale);
+		}
 	}
 
 	void stop() {
-		controller->moveVoltage(0);
+		topController->moveVoltage(0);
+		bottomController->moveVoltage(0);
 	}
 }

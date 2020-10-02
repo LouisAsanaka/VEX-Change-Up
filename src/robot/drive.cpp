@@ -16,7 +16,7 @@ namespace robot::drive {
         IterativePosPIDController::Gains DISTANCE_GAINS {0.0035, 0.0, 0.00007};
         IterativePosPIDController::Gains ANGLE_GAINS {0.002, 0.0, 0.0};
         IterativePosPIDController::Gains TURN_GAINS {0.006, 0.001, 0.000065};
-        IterativePosPIDController::Gains STRAFE_DISTANCE_GAINS {7.0, 0.0, 0.002};
+        IterativePosPIDController::Gains STRAFE_DISTANCE_GAINS {3.0, 0.0, 0.002};
         IterativePosPIDController::Gains STRAFE_ANGLE_GAINS {1.9, 0.0, 0.03};
 
         AbstractMotor::GearsetRatioPair gearing {AbstractMotor::gearset::green, 1.0};

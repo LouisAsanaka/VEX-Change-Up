@@ -7,7 +7,7 @@ namespace robot::intake {
 	std::unique_ptr<MotorController> controller;
 
 	void init() {
-		MotorGroup motors {{-6, 7}};
+		MotorGroup motors {{-6, 8}};
 		motors.setGearing(AbstractMotor::gearset::green);
 		motors.setBrakeMode(AbstractMotor::brakeMode::brake);
 

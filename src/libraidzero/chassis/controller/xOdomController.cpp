@@ -497,7 +497,7 @@ bool XOdomController::isTrajectorySettled() {
     auto diff = targetPose - Pose2d::fromOdomState(getState());
     double distance = diff.translation().norm().convert(meter);
     LOG_INFO("Traj settle radius: " + std::to_string(distance) + " meters");
-    return strafeDistancePid->isSettled() && strafeAnglePid->isSettled() && distance < 0.05;
+    return strafeDistancePid->isSettled() && strafeAnglePid->isSettled() && distance < 0.03;
 }
 
 XOdomController::SettleResult XOdomController::waitForTrajectorySettled(int itimeout) {
