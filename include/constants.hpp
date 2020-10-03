@@ -1,11 +1,15 @@
 #pragma once
 
-#include "main.h"
-
 // Robot dimensions
-constexpr QLength WHEEL_TRACK                  = 12.63_in;
-constexpr QLength TRACKING_WHEEL_DIAMETER      = 2.75_in;
-constexpr QLength TRACKING_BACK_WHEEL_DISTANCE = 5.7_in;
+#include "okapi/api/units/QAngle.hpp"
+#include "okapi/api/units/QLength.hpp"
+#include "okapi/api/units/QTime.hpp"
+
+using namespace okapi::literals;
+
+constexpr okapi::QLength WHEEL_TRACK                  = 12.63_in;
+constexpr okapi::QLength TRACKING_WHEEL_DIAMETER      = 2.75_in;
+constexpr okapi::QLength TRACKING_BACK_WHEEL_DISTANCE = 5.7_in;
 
 // Drive profiling constants
 constexpr double DRIVE_MAX_VEL   = 0.5;
@@ -13,20 +17,41 @@ constexpr double DRIVE_MAX_ACCEL = 0.5;
 constexpr double DRIVE_MAX_JERK  = 8.0;
 
 // Drivetrain settling tolerances
-constexpr double DRIVE_ENCODER_TARGET_ERROR = 40;
-constexpr double DRIVE_ENCODER_TARGET_DERIV = 5;
-constexpr QTime DRIVE_ENCODER_TARGET_TIME   = 200_ms;
+constexpr double DRIVE_ENCODER_TARGET_ERROR       = 40;
+constexpr double DRIVE_ENCODER_TARGET_DERIV       = 5;
+constexpr okapi::QTime DRIVE_ENCODER_TARGET_TIME  = 200_ms;
 
-constexpr double STRAFING_DIST_TARGET_ERROR = 0.02;
-constexpr double STRAFING_DIST_TARGET_DERIV = 5;
-constexpr QTime STRAFING_DIST_TARGET_TIME   = 200_ms;
+constexpr double STRAFING_DIST_TARGET_ERROR       = 0.02;
+constexpr double STRAFING_DIST_TARGET_DERIV       = 5;
+constexpr okapi::QTime STRAFING_DIST_TARGET_TIME  = 200_ms;
 
-constexpr double STRAFING_ANGLE_TARGET_ERROR = 0.07;
-constexpr double STRAFING_ANGLE_TARGET_DERIV = 5;
-constexpr QTime STRAFING_ANGLE_TARGET_TIME   = 200_ms;
+constexpr double STRAFING_ANGLE_TARGET_ERROR      = 0.07;
+constexpr double STRAFING_ANGLE_TARGET_DERIV      = 5;
+constexpr okapi::QTime STRAFING_ANGLE_TARGET_TIME = 200_ms;
 
-constexpr QLength DISTANCE_BEFORE_MOVE = 5_cm;
-constexpr QAngle ANGLE_BEFORE_TURN     = 5_deg;
+constexpr okapi::QLength DISTANCE_BEFORE_MOVE = 5_cm;
+constexpr okapi::QAngle ANGLE_BEFORE_TURN     = 5_deg;
+
+// Drivetrain PID constants
+constexpr double DISTANCE_KP = 0.0035;
+constexpr double DISTANCE_KI = 0.0;
+constexpr double DISTANCE_KD = 0.00007;
+
+constexpr double ANGLE_KP = 0.002;
+constexpr double ANGLE_KI = 0.0;
+constexpr double ANGLE_KD = 0.0;
+
+constexpr double TURN_KP = 0.006;
+constexpr double TURN_KI = 0.001;
+constexpr double TURN_KD = 0.000065;
+
+constexpr double STRAFE_DISTANCE_KP = 3.0;
+constexpr double STRAFE_DISTANCE_KI = 0.0;
+constexpr double STRAFE_DISTANCE_KD = 0.002;
+
+constexpr double STRAFE_ANGLE_KP = 1.9;
+constexpr double STRAFE_ANGLE_KI = 0.0;
+constexpr double STRAFE_ANGLE_KD = 0.03;
 
 // Controller
 constexpr double CONTROLLER_DEADBAND = 0.1;

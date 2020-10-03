@@ -13,11 +13,21 @@ namespace robot::drive {
     std::shared_ptr<ThreeEncoderGyroXDriveModel> model;
 
 	void init() {
-        IterativePosPIDController::Gains DISTANCE_GAINS {0.0035, 0.0, 0.00007};
-        IterativePosPIDController::Gains ANGLE_GAINS {0.002, 0.0, 0.0};
-        IterativePosPIDController::Gains TURN_GAINS {0.006, 0.001, 0.000065};
-        IterativePosPIDController::Gains STRAFE_DISTANCE_GAINS {3.0, 0.0, 0.002};
-        IterativePosPIDController::Gains STRAFE_ANGLE_GAINS {1.9, 0.0, 0.03};
+        IterativePosPIDController::Gains DISTANCE_GAINS {
+            DISTANCE_KP, DISTANCE_KI, DISTANCE_KD
+        };
+        IterativePosPIDController::Gains ANGLE_GAINS {
+            ANGLE_KP, ANGLE_KI, ANGLE_KD
+        };
+        IterativePosPIDController::Gains TURN_GAINS {
+            TURN_KP, TURN_KI, TURN_KD
+        };
+        IterativePosPIDController::Gains STRAFE_DISTANCE_GAINS {
+            STRAFE_DISTANCE_KP, STRAFE_DISTANCE_KI, STRAFE_DISTANCE_KD
+        };
+        IterativePosPIDController::Gains STRAFE_ANGLE_GAINS {
+            STRAFE_ANGLE_KP, STRAFE_ANGLE_KI, STRAFE_ANGLE_KD
+        };
 
         AbstractMotor::GearsetRatioPair gearing {AbstractMotor::gearset::green, 1.0};
         ChassisScales odomScales {
