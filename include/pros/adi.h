@@ -111,7 +111,6 @@ typedef enum adi_port_config_e {
 #endif
 #endif
 
-#define INTERNAL_ADI_PORT 22
 #define NUM_ADI_PORTS 8
 
 #ifdef __cplusplus
@@ -328,7 +327,7 @@ int32_t adi_analog_read_calibrated_HR(uint8_t port);
  * Gets the digital value (1 or 0) of a port configured as a digital input.
  *
  * If the port is configured as some other mode, the digital value which
- * reflects the current state of the port is returned, which may or may not
+ * reflects the current state of the poprt is returned, which may or may not
  * differ from the currently set value. The return value is undefined for ports
  * configured as any mode other than a Digital Input.
  *
@@ -387,7 +386,7 @@ int32_t adi_digital_get_new_press(uint8_t port);
  * \return 1 if the operation was successful or PROS_ERR if the operation
  * failed, setting errno.
  */
-int32_t adi_digital_write(uint8_t port, bool value);
+int32_t adi_digital_write(uint8_t port, const bool value);
 
 /**
  * Configures the port as an input or output with a variety of settings.
@@ -494,7 +493,7 @@ int32_t adi_encoder_get(adi_encoder_t enc);
  *
  * \param port_top
  *        The "top" wire from the encoder sensor with the removable cover side
- *        up
+ *        UP
  * \param port_bottom
  *        The "bottom" wire from the encoder sensor
  * \param reverse
@@ -503,7 +502,7 @@ int32_t adi_encoder_get(adi_encoder_t enc);
  * \return An adi_encoder_t object to be stored and used for later calls to
  * encoder functions
  */
-adi_encoder_t adi_encoder_init(uint8_t port_top, uint8_t port_bottom, bool reverse);
+adi_encoder_t adi_encoder_init(uint8_t port_top, uint8_t port_bottom, const bool reverse);
 
 /**
  * Sets the encoder value to zero.
