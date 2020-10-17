@@ -6,8 +6,6 @@
 #include "robot/drive.hpp"
 
 void opcontrol() {
-	pros::ADIAnalogIn lineTracker{'B'};
-
 	Controller master {ControllerId::master};
 
 	robot::drive::resetEncoders();
@@ -72,7 +70,7 @@ void opcontrol() {
 		// } else {
 		// 	robot::conveyor::stop();
 		// }
-		std::cout << lineTracker.get_value() << std::endl;
+		//std::cout << lineTracker.get_value() << std::endl;
 		pros::delay(20);
 	}
 }

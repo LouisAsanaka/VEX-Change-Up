@@ -9,9 +9,12 @@
 
 #include "okapi/api/chassis/model/threeEncoderXDriveModel.hpp"
 #include "okapi/api/chassis/model/xDriveModel.hpp"
+#include "okapi/api/units/QAngle.hpp"
 #include "pros/imu.hpp"
 
 #define GYRO_RESOLUTION 100.0
+
+using namespace okapi::literals;
 
 class ThreeEncoderGyroXDriveModel : public okapi::ThreeEncoderXDriveModel {
     public:
@@ -51,7 +54,7 @@ class ThreeEncoderGyroXDriveModel : public okapi::ThreeEncoderXDriveModel {
      */
     void resetSensors() override;
 
-    void resetGyro();
+    void resetGyro(okapi::QAngle angle = 0_deg);
   
     protected:
     std::shared_ptr<pros::Imu> gyro;

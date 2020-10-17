@@ -66,7 +66,7 @@
         {
             "label": "PROS: Terminal",
             "type": "shell",
-            "command": "prosv5 terminal",
+            "command": "prosv5 terminal --debug",
             "presentation": {
                 "reveal": "always",
                 "panel": "new",

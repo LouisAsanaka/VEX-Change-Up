@@ -1,4 +1,5 @@
 #include "libraidzero/chassis/model/threeEncoderGyroXDriveModel.hpp"
+#include "okapi/api/units/QAngle.hpp"
 
 ThreeEncoderGyroXDriveModel::ThreeEncoderGyroXDriveModel(std::shared_ptr<okapi::AbstractMotor> itopLeftMotor,
                                                          std::shared_ptr<okapi::AbstractMotor> itopRightMotor,
@@ -35,6 +36,8 @@ void ThreeEncoderGyroXDriveModel::resetSensors() {
     resetGyro();
 }
 
-void ThreeEncoderGyroXDriveModel::resetGyro() {
-    headingOffset = static_cast<int>(gyro->get_rotation() * GYRO_RESOLUTION);
+void ThreeEncoderGyroXDriveModel::resetGyro(okapi::QAngle angle) {
+    headingOffset = static_cast<int>(
+        (gyro->get_rotation() + angle.convert(okapi::degree)) * GYRO_RESOLUTION
+    );
 }
