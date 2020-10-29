@@ -8,7 +8,7 @@
 using namespace okapi::literals;
 
 constexpr okapi::QLength WHEEL_TRACK                  = 12.63_in;
-constexpr okapi::QLength TRACKING_WHEEL_DIAMETER      = 2.75_in;
+constexpr okapi::QLength TRACKING_WHEEL_DIAMETER      = 2.80_in;
 constexpr okapi::QLength TRACKING_BACK_WHEEL_DISTANCE = 5.7_in;
 
 // Drive profiling constants
@@ -23,11 +23,11 @@ constexpr okapi::QTime DRIVE_ENCODER_TARGET_TIME  = 200_ms;
 
 constexpr double STRAFING_DIST_TARGET_ERROR       = 0.02;
 constexpr double STRAFING_DIST_TARGET_DERIV       = 5;
-constexpr okapi::QTime STRAFING_DIST_TARGET_TIME  = 200_ms;
+constexpr okapi::QTime STRAFING_DIST_TARGET_TIME  = 150_ms;
 
-constexpr double STRAFING_ANGLE_TARGET_ERROR      = 0.07;
+constexpr double STRAFING_ANGLE_TARGET_ERROR      = 0.1;
 constexpr double STRAFING_ANGLE_TARGET_DERIV      = 5;
-constexpr okapi::QTime STRAFING_ANGLE_TARGET_TIME = 200_ms;
+constexpr okapi::QTime STRAFING_ANGLE_TARGET_TIME = 150_ms;
 
 constexpr okapi::QLength DISTANCE_BEFORE_MOVE = 5_cm;
 constexpr okapi::QAngle ANGLE_BEFORE_TURN     = 5_deg;
@@ -45,11 +45,11 @@ constexpr double TURN_KP = 0.006;
 constexpr double TURN_KI = 0.001;
 constexpr double TURN_KD = 0.000065;
 
-constexpr double STRAFE_DISTANCE_KP = 3.0;
+constexpr double STRAFE_DISTANCE_KP = 3.15;
 constexpr double STRAFE_DISTANCE_KI = 0.0;
-constexpr double STRAFE_DISTANCE_KD = 0.002;
+constexpr double STRAFE_DISTANCE_KD = 0.003;
 
-constexpr double STRAFE_ANGLE_KP = 1.9;
+constexpr double STRAFE_ANGLE_KP = 2.1;
 constexpr double STRAFE_ANGLE_KI = 0.0;
 constexpr double STRAFE_ANGLE_KD = 0.03;
 

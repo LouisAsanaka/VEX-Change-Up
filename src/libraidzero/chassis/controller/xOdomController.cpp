@@ -7,6 +7,7 @@
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/geometry/rotation2d.hpp"
 #include "libraidzero/geometry/translation2d.hpp"
+#include "libraidzero/util/miscUtil.hpp"
 #include "okapi/api/odometry/odomMath.hpp"
 #include "okapi/api/odometry/stateMode.hpp"
 #include "okapi/api/units/QAngle.hpp"
@@ -351,6 +352,13 @@ void XOdomController::followTrajectoryAsync(const Trajectory& itrajectory) {
 
 void XOdomController::setState(OdomState istate) {
     odometry->setState(istate);
+}
+
+void XOdomController::setPose(const Pose2d &ipose) {
+    odometry->setState({
+        ipose.translation().x(), ipose.translation().y(), 
+        constrainAngle(-ipose.rotation().angle().convert(radian)) * radian
+    }, StateMode::CARTESIAN);
 }
 
 OdomState XOdomController::getState() {

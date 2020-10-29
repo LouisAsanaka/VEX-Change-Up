@@ -17,6 +17,8 @@ void opcontrol() {
 		double yaw = master.getAnalog(ControllerAnalog::rightX) * DRIVE_SPEED;
 		robot::drive::model->arcade(
 			forwardSpeed, yaw, CONTROLLER_DEADBAND);*/
+		//auto pose = Pose2d::fromOdomState(robot::drive::controller->getState());
+		//std::cout << pose.toString() << std::endl;
 		bool forwardAdjust = master.getDigital(ControllerDigital::X);
 		bool backwardAdjust = master.getDigital(ControllerDigital::B);
 		if (forwardAdjust || backwardAdjust) {

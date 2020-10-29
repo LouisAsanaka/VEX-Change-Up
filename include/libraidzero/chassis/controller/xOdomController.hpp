@@ -148,6 +148,8 @@ public:
      */
     void setState(OdomState istate) override;
 
+    void setPose(const Pose2d& ipose);
+
     /**
      * Returns the current odometry state.
      *
