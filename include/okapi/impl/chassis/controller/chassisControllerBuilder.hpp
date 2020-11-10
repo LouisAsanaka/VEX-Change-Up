@@ -1,6 +1,4 @@
 /*
- * @author Ryan Benasutti, WPI
- *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +17,7 @@
 #include "okapi/impl/device/motor/motorGroup.hpp"
 #include "okapi/impl/device/rotarysensor/adiEncoder.hpp"
 #include "okapi/impl/device/rotarysensor/integratedEncoder.hpp"
+#include "okapi/impl/device/rotarysensor/rotationSensor.hpp"
 #include "okapi/impl/util/timeUtilFactory.hpp"
 
 namespace okapi {
@@ -174,6 +173,27 @@ class ChassisControllerBuilder {
    * @param iright The right side sensor.
    * @return An ongoing builder.
    */
+  ChassisControllerBuilder &withSensors(const RotationSensor &ileft, const RotationSensor &iright);
+
+  /**
+   * Sets the sensors. The default sensors are the motor's integrated encoders.
+   *
+   * @param ileft The left side sensor.
+   * @param iright The right side sensor.
+   * @param imiddle The middle sensor.
+   * @return An ongoing builder.
+   */
+  ChassisControllerBuilder &withSensors(const RotationSensor &ileft,
+                                        const RotationSensor &iright,
+                                        const RotationSensor &imiddle);
+
+  /**
+   * Sets the sensors. The default sensors are the motor's integrated encoders.
+   *
+   * @param ileft The left side sensor.
+   * @param iright The right side sensor.
+   * @return An ongoing builder.
+   */
   ChassisControllerBuilder &withSensors(const IntegratedEncoder &ileft,
                                         const IntegratedEncoder &iright);
 
@@ -310,7 +330,7 @@ class ChassisControllerBuilder {
   ChassisControllerBuilder &withMaxVelocity(double imaxVelocity);
 
   /**
-   * Sets the max voltage.
+   * Sets the max voltage. The default is `12000`.
    *
    * @param imaxVoltage The max voltage.
    * @return An ongoing builder.
