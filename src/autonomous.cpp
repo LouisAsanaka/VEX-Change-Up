@@ -53,26 +53,31 @@ void rightSide() {
 void rightSide3() {
     robot::drive::resetEncoders();
     robot::drive::model->resetGyro(180_deg);
-    robot::drive::controller->setPose({2.78_m, 0.08_m, 180_deg});
+    robot::drive::controller->setPose({2.74_m, 0.16_m, 180_deg});
     robot::drive::controller->setMaxVoltage(1.0 * 12000);
 
-    robot::drive::model->xArcade(0.0, -0.8, 0.0);
-    pros::delay(500);
-    robot::drive::controller->strafeToPoseAsync({2.84_m, 0.65_m, 225_deg});
-    robot::drive::controller->waitUntilSettled(500);
-    pros::delay(100);
-
-    robot::drive::controller->driveForDistanceAsync(0.56_m);
+    robot::drive::model->xArcade(0.0, -0.6, 0.0);
+    pros::delay(300);
+    robot::drive::model->stop();
     pros::delay(200);
+    robot::drive::controller->strafeToPoseAsync({2.78_m, 0.70_m, 225_deg});
+    robot::drive::controller->waitUntilSettled(1000);
+    pros::delay(100);
+    robot::drive::controller->driveForDistanceAsync(0.60_m);
     robot::intake::spinIn(1.0);
+    pros::delay(600);
     robot::conveyor::moveUp(1.0, robot::conveyor::Position::Top);
     robot::conveyor::moveUp(1.0, robot::conveyor::Position::Bottom);
-    robot::drive::controller->waitUntilSettled();
-    robot::conveyor::stop();
+    pros::delay(100);
     robot::intake::stop();
-    // robot::drive::controller->strafeToPoseAsync({3.35_m, 0.30_m, 225_deg});
-    // robot::drive::controller->waitUntilSettled(2000);
-
+    robot::drive::controller->waitUntilSettled(650);
+    pros::delay(100);
+    robot::conveyor::stop();
+    return;
+    robot::drive::controller->strafeToPoseAsync({2.74_m, 0.55_m, 225_deg});
+    robot::drive::controller->waitUntilSettled(2000);
+    robot::intake::spinIn(1.0);
+    return;
     robot::drive::controller->strafeToPoseAsync({1.78_m, 0.45_m, 180_deg});
     robot::conveyor::moveDown(1.0, robot::conveyor::Position::Top);
     robot::conveyor::moveDown(1.0, robot::conveyor::Position::Bottom);
