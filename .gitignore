@@ -10,7 +10,7 @@
 bin/
 .vscode/cquery_cached_index/
 .vscode/.ccls-cache/
-.clangd/
+.cache/
 compile_commands.json
 temp.log
 temp.errors
