@@ -1,11 +1,19 @@
 #include "robot/conveyor.hpp"
 #include "main.h"
 #include "libraidzero/api.hpp"
+#include <atomic>
 
 namespace robot::conveyor {
 
 	std::unique_ptr<MotorController> topController;
 	std::unique_ptr<MotorController> bottomController;
+	CrossplatformThread* task;
+
+	pros::ADIAnalogIn lineTracker{'B'};
+	int average = 0;
+
+	std::atomic_bool checkingForBalls{false};
+	std::atomic_int targetBallsPassed{0};
 
 	void init() {
 		MotorGroup topMotor {{10}};
@@ -21,6 +29,10 @@ namespace robot::conveyor {
 
 		bottomController = std::make_unique<MotorController>(bottomMotor);
 		bottomController->tarePosition();
+
+		startThread();
+
+		average = lineTracker.calibrate();
 	}
 
     void moveUp(double voltageScale, Position position) {
@@ -39,8 +51,68 @@ namespace robot::conveyor {
 		}
 	}
 
-	void stop() {
+	void moveBoth(double voltageScale) {
+		moveUp(voltageScale, Position::Top);
+    	moveUp(voltageScale, Position::Bottom);
+	}
+
+	void stopAll() {
 		topController->moveVoltage(0);
 		bottomController->moveVoltage(0);
+	}
+
+	void stop(Position position) {
+		if (position == Position::Top) {
+			topController->moveVoltage(0);
+		} else {
+			bottomController->moveVoltage(0);
+		}
+	}
+
+	void startCountingBalls() {
+		if (checkingForBalls.load(std::memory_order_acquire)) {
+			return;
+		}
+		checkingForBalls.store(true, std::memory_order_release);
+		targetBallsPassed.store(99, std::memory_order_release);
+	}
+
+	void waitUntilPassed(int numberOfBalls) {
+		if (!checkingForBalls.load(std::memory_order_acquire)) {
+			return;
+		}
+		targetBallsPassed.store(numberOfBalls, std::memory_order_release);
+		while (checkingForBalls.load(std::memory_order_acquire)) {
+			pros::delay(100);
+		}
+	}
+
+	void startThread() {
+		if (task == nullptr) {
+			task = new CrossplatformThread(trampoline, NULL);
+		}
+	}
+
+	void trampoline(void *context) {
+		while (task->notifyTake(0) == 0U) {
+			if (checkingForBalls.load(std::memory_order_acquire)) {
+				int target = targetBallsPassed.load(std::memory_order_release);
+				int currentBallsPassed = 0;
+				while (currentBallsPassed < target) {
+					//std::cout << average << " - " << lineTracker.get_value() << std::endl;
+					if (average - lineTracker.get_value() > 400) {
+						//std::cout << "passed" << std::endl;
+						++currentBallsPassed;
+					}
+					pros::delay(50);
+				}
+				pros::delay(110);
+				stop(Position::Bottom);
+				pros::delay(200);
+				stop(Position::Top);
+				checkingForBalls.store(false, std::memory_order_release);
+			}
+			pros::delay(100);
+		}
 	}
 }

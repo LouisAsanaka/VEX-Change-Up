@@ -54,7 +54,7 @@ void opcontrol() {
 			robot::conveyor::moveDown(1.0, robot::conveyor::Position::Top);
 			robot::conveyor::moveDown(1.0, robot::conveyor::Position::Bottom);
 		} else {
-			robot::conveyor::stop();
+			robot::conveyor::stopAll();
 		}
 		// bool topDown = master.getDigital(ControllerDigital::left);
 		// bool bottomDown = master.getDigital(ControllerDigital::down);
