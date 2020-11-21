@@ -45,13 +45,15 @@ constexpr double TURN_KP = 0.006;
 constexpr double TURN_KI = 0.001;
 constexpr double TURN_KD = 0.000065;
 
-constexpr double STRAFE_DISTANCE_KP = 3.15;
+constexpr double STRAFE_DISTANCE_KP = 3.2;
 constexpr double STRAFE_DISTANCE_KI = 0.0;
-constexpr double STRAFE_DISTANCE_KD = 0.003;
+constexpr double STRAFE_DISTANCE_KD = 0.0028;
 
 constexpr double STRAFE_ANGLE_KP = 2.1;
 constexpr double STRAFE_ANGLE_KI = 0.0;
 constexpr double STRAFE_ANGLE_KD = 0.03;
+
+constexpr double STRAFE_SLEW_RATE = 0.15; // m / ms
 
 // Controller
 constexpr double CONTROLLER_DEADBAND = 0.1;

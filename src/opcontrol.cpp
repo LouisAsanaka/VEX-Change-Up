@@ -34,7 +34,7 @@ void opcontrol() {
 			);
 		}
 
-		// std::cout << robot::drive::controller->getState().str() << std::endl;
+		//std::cout << robot::drive::controller->getState().str() << std::endl;
 		if (master.getDigital(ControllerDigital::A)) {
 			robot::drive::model->resetGyro();
 		}

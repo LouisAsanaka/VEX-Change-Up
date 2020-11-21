@@ -96,9 +96,8 @@ namespace robot::conveyor {
 	void trampoline(void *context) {
 		while (task->notifyTake(0) == 0U) {
 			if (checkingForBalls.load(std::memory_order_acquire)) {
-				int target = targetBallsPassed.load(std::memory_order_release);
 				int currentBallsPassed = 0;
-				while (currentBallsPassed < target) {
+				while (currentBallsPassed < targetBallsPassed.load(std::memory_order_release)) {
 					//std::cout << average << " - " << lineTracker.get_value() << std::endl;
 					if (average - lineTracker.get_value() > 400) {
 						//std::cout << "passed" << std::endl;
@@ -106,9 +105,9 @@ namespace robot::conveyor {
 					}
 					pros::delay(50);
 				}
-				pros::delay(110);
-				stop(Position::Bottom);
 				pros::delay(200);
+				stop(Position::Bottom);
+				pros::delay(400);
 				stop(Position::Top);
 				checkingForBalls.store(false, std::memory_order_release);
 			}

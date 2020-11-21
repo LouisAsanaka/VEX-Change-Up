@@ -1,4 +1,5 @@
 #include <atomic>
+#include <memory>
 #include <utility>
 
 #include "libraidzero/chassis/controller/xOdomController.hpp"
@@ -22,6 +23,7 @@ XOdomController::XOdomController(
     std::unique_ptr<IterativePosPIDController> iturnPid,
     std::unique_ptr<IterativePosPIDController> istrafeDistancePid,
     std::unique_ptr<IterativePosPIDController> istrafeAnglePid,
+    std::unique_ptr<SlewRateLimiter> islewRate,
     const AbstractMotor::GearsetRatioPair& igearset,
     const ChassisScales& iscales,
     QLength idistanceThreshold,
@@ -35,6 +37,7 @@ XOdomController::XOdomController(
     turnPid{std::move(iturnPid)},
     strafeDistancePid{std::move(istrafeDistancePid)},
     strafeAnglePid{std::move(istrafeAnglePid)},
+    slewRate{std::move(islewRate)},
     gearsetRatioPair{igearset},
     scales{iscales},
     distanceThreshold{idistanceThreshold},
@@ -151,7 +154,7 @@ void XOdomController::updateStrafeToPose(const Translation2d& targetTranslation)
 
     // Should always be negated since setpoint is always 0, and distance
     // is always positive. The direction vector only needs the magnitude.
-    double distanceOutput = -strafeDistancePid->step(distance);
+    double distanceOutput = slewRate->calculate(-strafeDistancePid->step(distance));
 
     // QAngle gyroRotation = -currentPose.rotation().angle();
     QAngle gyroRotation = -model->getSensorVals()[3] / GYRO_RESOLUTION * degree;
@@ -160,14 +163,15 @@ void XOdomController::updateStrafeToPose(const Translation2d& targetTranslation)
     directionVector /= distance;
     directionVector *= distanceOutput;
     directionVector = directionVector.rotateBy(Rotation2d{-gyroRotation});
-    //std::cout << "DirX: " << directionVector.x().convert(meter) << ", DirY:" << directionVector.y().convert(meter) << std::endl;
+
+    std::cout << "DirX: " << directionVector.x().convert(meter) << ", DirY:" << directionVector.y().convert(meter) << std::endl;
 
     double angleOutput = strafeAnglePid->step(
         gyroRotation.convert(radian)
     );
     //std::cout << gyroHeading.convert(radian) << " | " << strafeAnglePid->getError() << std::endl;
 
-    //std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
+    std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
 
     // Negate the angle output since xArcade takes + as clockwise
     model->xArcade(

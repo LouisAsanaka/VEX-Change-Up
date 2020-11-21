@@ -1,4 +1,5 @@
 #include "robot/drive.hpp"
+#include "libraidzero/filter/slewRateLimiter.hpp"
 #include "main.h"
 #include "libraidzero/api.hpp"
 #include "constants.hpp"
@@ -87,6 +88,7 @@ namespace robot::drive {
                                                         strafingAngleTimeFactory.create(),
                                                         std::make_unique<PassthroughFilter>(),
                                                         controllerLogger),
+            std::make_unique<SlewRateLimiter>(STRAFE_SLEW_RATE),
             gearing, odomScales, DISTANCE_BEFORE_MOVE, ANGLE_BEFORE_TURN, controllerLogger
         );
         controller->startOdomThread();

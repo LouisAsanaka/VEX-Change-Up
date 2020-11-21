@@ -1,6 +1,7 @@
 #pragma once
 
 #include "libraidzero/chassis/controller/iodomController.hpp"
+#include "libraidzero/filter/slewRateLimiter.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/trajectory/trajectory.hpp"
 #include "okapi/api/chassis/controller/chassisScales.hpp"
@@ -47,6 +48,7 @@ public:
         std::unique_ptr<IterativePosPIDController> iturnPid,
         std::unique_ptr<IterativePosPIDController> istrafeDistancePid,
         std::unique_ptr<IterativePosPIDController> istrafeAnglePid,
+        std::unique_ptr<SlewRateLimiter> islewRate,
         const AbstractMotor::GearsetRatioPair& igearset,
         const ChassisScales& iscales,
         QLength idistanceThreshold = 0_mm,
@@ -241,6 +243,7 @@ protected:
     std::unique_ptr<IterativePosPIDController> turnPid {nullptr};
     std::unique_ptr<IterativePosPIDController> strafeDistancePid {nullptr};
     std::unique_ptr<IterativePosPIDController> strafeAnglePid {nullptr};
+    std::unique_ptr<SlewRateLimiter> slewRate {nullptr};
 
     Pose2d targetPose;
 
