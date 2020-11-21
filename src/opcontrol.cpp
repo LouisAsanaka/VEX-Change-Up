@@ -1,3 +1,4 @@
+#include "libraidzero/util/plotter.hpp"
 #include "main.h"
 #include "opcontrol.hpp"
 #include "robot.hpp"

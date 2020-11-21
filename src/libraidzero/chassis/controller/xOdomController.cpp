@@ -9,6 +9,7 @@
 #include "libraidzero/geometry/rotation2d.hpp"
 #include "libraidzero/geometry/translation2d.hpp"
 #include "libraidzero/util/miscUtil.hpp"
+#include "libraidzero/util/plotter.hpp"
 #include "okapi/api/odometry/odomMath.hpp"
 #include "okapi/api/odometry/stateMode.hpp"
 #include "okapi/api/units/QAngle.hpp"
@@ -71,7 +72,12 @@ void XOdomController::loop() {
     ControlMode lastMode = ControlMode::None;
     auto timer = timeUtil.getTimer();
 
+    //plotterStart();
     while (!dtorCalled.load(std::memory_order_acquire) && (task->notifyTake(0) == 0U)) {
+        //std::vector<double> vect;
+        //vect.push_back(getState().x.convert(meter));
+        //vect.push_back(getState().y.convert(meter)); 
+        //plotterPlot(vect);
         /**
          * doneLooping is set to false by distance and turning methods and then 
          * set to true by waitUntilSettled
@@ -135,6 +141,7 @@ void XOdomController::loop() {
         
         rate->delayUntil(10_ms);
     }
+    //plotterStop();
     LOG_INFO_S("Stopped XOdomController task.");
 }
 
