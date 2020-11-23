@@ -138,7 +138,7 @@ void rightSide3(bool shouldReset) {
     robot::drive::controller->driveForDistanceAsync(0.35_m);
     robot::intake::spinIn(1.0);
     robot::drive::controller->waitUntilSettled(500);
-    pros::delay(200);
+    pros::delay(400);
     robot::intake::stop();
 
     robot::drive::model->xArcade(0.0, 0.7, 0.0);
