@@ -15,13 +15,13 @@ void reset(okapi::QLength x, okapi::QLength y,
     if (currentAngle) {
         initialAngle = -(robot::drive::model->getSensorVals()[3] 
             / static_cast<double>(GYRO_RESOLUTION)) * degree;
-        Controller master {ControllerId::master};
-        std::stringstream ss;
-        ss << "Angle: ";
-        ss << initialAngle.convert(degree);
-        ss << " deg";
-        std::cout << ss.str() << std::endl;
-        master.setText(0, 0, ss.str());
+        // Controller master {ControllerId::master};
+        // std::stringstream ss;
+        // ss << "Angle: ";
+        // ss << initialAngle.convert(degree);
+        // ss << " deg";
+        // std::cout << ss.str() << std::endl;
+        // master.setText(0, 0, ss.str());
     }
     robot::drive::resetEncoders();
     robot::drive::model->resetGyro(initialAngle);
@@ -39,7 +39,7 @@ void backout(int milliseconds) {
 
 void backupFromGoal() {
     robot::drive::model->xArcade(0.0, -0.6, 0.0);
-    pros::delay(150);
+    pros::delay(100);
     robot::drive::model->stop();
 }
 
@@ -124,7 +124,7 @@ void rightSide3(bool shouldReset) {
         reset(0_m, 0_m, 180_deg);
     }
     rightSide2(false, false);
-    backout(400);
+    backout(600);
     
     // Move to third goal while out-taking
     robot::drive::controller->strafeToPoseAsync({-2.05_m, 0.40_m, 135_deg});
@@ -137,8 +137,8 @@ void rightSide3(bool shouldReset) {
     robot::conveyor::startCountingBalls();
     robot::drive::controller->driveForDistanceAsync(0.35_m);
     robot::intake::spinIn(1.0);
-    robot::drive::controller->waitUntilSettled(600);
-    pros::delay(300);
+    robot::drive::controller->waitUntilSettled(500);
+    pros::delay(200);
     robot::intake::stop();
 
     robot::drive::model->xArcade(0.0, 0.7, 0.0);

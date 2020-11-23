@@ -171,14 +171,14 @@ void XOdomController::updateStrafeToPose(const Translation2d& targetTranslation)
     directionVector *= distanceOutput;
     directionVector = directionVector.rotateBy(Rotation2d{-gyroRotation});
 
-    std::cout << "DirX: " << directionVector.x().convert(meter) << ", DirY:" << directionVector.y().convert(meter) << std::endl;
+    // std::cout << "DirX: " << directionVector.x().convert(meter) << ", DirY:" << directionVector.y().convert(meter) << std::endl;
 
     double angleOutput = strafeAnglePid->step(
         gyroRotation.convert(radian)
     );
     //std::cout << gyroHeading.convert(radian) << " | " << strafeAnglePid->getError() << std::endl;
 
-    std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
+    // std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
 
     // Negate the angle output since xArcade takes + as clockwise
     model->xArcade(
