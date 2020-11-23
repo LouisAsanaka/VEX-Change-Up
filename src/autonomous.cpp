@@ -124,7 +124,7 @@ void rightSide3(bool shouldReset) {
         reset(0_m, 0_m, 180_deg);
     }
     rightSide2(false, false);
-    backout(600);
+    backout(700);
     
     // Move to third goal while out-taking
     robot::drive::controller->strafeToPoseAsync({-2.05_m, 0.40_m, 135_deg});

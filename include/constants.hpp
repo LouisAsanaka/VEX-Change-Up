@@ -7,6 +7,9 @@
 
 using namespace okapi::literals;
 
+constexpr int OPCONTROL_DURATION = 105 * 1000;
+constexpr int TIME_TILL_15_SECONDS = OPCONTROL_DURATION - 15 * 1000;
+
 constexpr okapi::QLength WHEEL_TRACK                  = 12.63_in;
 constexpr okapi::QLength TRACKING_WHEEL_DIAMETER      = 2.80_in;
 constexpr okapi::QLength TRACKING_BACK_WHEEL_DISTANCE = 5.7_in;
