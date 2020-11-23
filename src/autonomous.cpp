@@ -12,9 +12,8 @@
 
 void reset(okapi::QLength x, okapi::QLength y, 
            okapi::QAngle initialAngle, bool currentAngle) {
-    
     if (currentAngle) {
-        initialAngle = (robot::drive::model->getSensorVals()[3] 
+        initialAngle = -(robot::drive::model->getSensorVals()[3] 
             / static_cast<double>(GYRO_RESOLUTION)) * degree;
         Controller master {ControllerId::master};
         std::stringstream ss;
@@ -48,18 +47,25 @@ void rightSide1(bool shouldReset, bool shouldBackOut) {
     if (shouldReset) {
         reset(0_m, 0_m, 180_deg);
     }
+    // Backup to release intake
     robot::drive::model->xArcade(0.0, -0.6, 0.0);
     pros::delay(200);
     robot::drive::model->stop();
     pros::delay(100);
+
+    // Strafe to face the corner goal
     robot::drive::controller->strafeToPoseAsync({0.04_m, 0.50_m, 225_deg});
     robot::drive::controller->waitUntilSettled(1500);
     pros::delay(60);
-    robot::drive::controller->driveForDistanceAsync(0.38_m);
+
+    // Intake the ball in front of the corner goal
+    robot::drive::controller->driveForDistanceAsync(0.385_m);
     robot::intake::spinIn(1.0);
     pros::delay(900);
     robot::intake::stop();
     robot::drive::controller->waitUntilSettled(500);
+
+    // Finish scoring the preload ball
     robot::drive::controller->driveForDistanceAsync(0.20_m);
     robot::conveyor::startCountingBalls();
     robot::conveyor::moveBoth(1.0);
@@ -79,12 +85,10 @@ void rightSide2(bool shouldReset, bool shouldBackOut) {
     rightSide1(false, false);
     pros::delay(50);
 
-    //std::cout << "Ending1: " << Pose2d::fromOdomState(robot::drive::controller->getState()).toString() << std::endl;
-
     // Backout to second goal
     robot::intake::spinOut(1.0);
     robot::drive::controller->setMaxVoltage(0.85 * 12000);
-    robot::drive::controller->strafeToPoseAsync({-0.93_m, 0.33_m, 180_deg});
+    robot::drive::controller->strafeToPoseAsync({-0.93_m, 0.43_m, 180_deg});
     pros::delay(500);
     robot::intake::stop();
     robot::drive::controller->waitUntilSettled(2500);
@@ -99,10 +103,11 @@ void rightSide2(bool shouldReset, bool shouldBackOut) {
     // Controller master {ControllerId::master};
     // master.setText(0, 0, ss.str());
 
+    // Score the second ball by ramming into the goal & backing up
     robot::conveyor::startCountingBalls();
     robot::drive::model->xArcade(0.0, 0.7, 0.0);
-    pros::delay(1300);
-    //reset(-0.93_m, 0.12_m, 180_deg, true);
+    pros::delay(1000);
+    reset(-0.93_m, 0.12_m, 180_deg, true);
     backupFromGoal();
     //robot::drive::controller->driveForDistanceAsync(0.27_m);
     //pros::delay(150);
@@ -121,23 +126,32 @@ void rightSide3(bool shouldReset) {
     rightSide2(false, false);
     backout(400);
     
-    // Move to third stop
-    robot::drive::controller->strafeToPoseAsync({-1.9_m, 0.40_m, 135_deg});
+    // Move to third goal while out-taking
+    robot::drive::controller->strafeToPoseAsync({-2.05_m, 0.40_m, 135_deg});
     robot::intake::spinOut(1.0);
     pros::delay(500);
     robot::intake::stop();
-    robot::drive::controller->waitUntilSettled(2500);
+    robot::drive::controller->waitUntilSettled(2000);
 
-    // Score third ball
+    // Intake the ball in front of the third goal & score it
     robot::conveyor::startCountingBalls();
-    robot::drive::controller->driveForDistanceAsync(0.53_m);
+    robot::drive::controller->driveForDistanceAsync(0.35_m);
     robot::intake::spinIn(1.0);
+    robot::drive::controller->waitUntilSettled(600);
+    pros::delay(300);
+    robot::intake::stop();
+
+    robot::drive::model->xArcade(0.0, 0.7, 0.0);
+    pros::delay(300);
+    backupFromGoal();
     robot::conveyor::moveBoth(1.0);
     robot::conveyor::waitUntilPassed(1);
+
+    // Backup and out-take
     robot::intake::spinOut(1.0);
-    robot::drive::controller->waitUntilSettled(100);
-    robot::drive::model->xArcade(0.0, -0.6, 0.0);
-    pros::delay(400);
+    pros::delay(100);
+    robot::drive::model->xArcade(0.0, -1.0, 0.0);
+    pros::delay(800);
     robot::intake::stop();
     robot::drive::model->stop();
 }
@@ -160,6 +174,8 @@ void autonomous() {
     ss << "Time: ";
     ss << (pros::millis() - startTime) / 1000.0;
     ss << " s";
+
+    std::cout << ss.str() << std::endl;
 
     Controller master {ControllerId::master};
     master.setText(0, 0, ss.str());
