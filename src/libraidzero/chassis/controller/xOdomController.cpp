@@ -4,7 +4,7 @@
 
 #include "libraidzero/chassis/controller/xOdomController.hpp"
 #include "libraidzero/chassis/controller/iodomController.hpp"
-#include "libraidzero/chassis/model/threeEncoderGyroXDriveModel.hpp"
+#include "libraidzero/chassis/model/threeEncoderImuXDriveModel.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/geometry/rotation2d.hpp"
 #include "libraidzero/geometry/translation2d.hpp"
@@ -17,8 +17,8 @@
 
 XOdomController::XOdomController(
     TimeUtil itimeUtil,
-    std::shared_ptr<XDriveModel> imodel,
-    std::shared_ptr<Odometry> iodometry,
+    std::shared_ptr<ThreeEncoderImuXDriveModel> imodel,
+    std::shared_ptr<ThreeEncoderImuOdometry> iodometry,
     std::unique_ptr<IterativePosPIDController> idistancePid,
     std::unique_ptr<IterativePosPIDController> ianglePid,
     std::unique_ptr<IterativePosPIDController> iturnPid,
@@ -164,7 +164,7 @@ void XOdomController::updateStrafeToPose(const Translation2d& targetTranslation)
     double distanceOutput = slewRate->calculate(-strafeDistancePid->step(distance));
 
     // QAngle gyroRotation = -currentPose.rotation().angle();
-    QAngle gyroRotation = -model->getSensorVals()[3] / GYRO_RESOLUTION * degree;
+    QAngle gyroRotation = -model->getHeading() * degree;
 
     // Normalize the vector & scale it by the PID output
     directionVector /= distance;

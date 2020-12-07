@@ -13,8 +13,7 @@
 void reset(okapi::QLength x, okapi::QLength y, 
            okapi::QAngle initialAngle, bool currentAngle) {
     if (currentAngle) {
-        initialAngle = -(robot::drive::model->getSensorVals()[3] 
-            / static_cast<double>(GYRO_RESOLUTION)) * degree;
+        initialAngle = -robot::drive::model->getHeading() * degree;
         // Controller master {ControllerId::master};
         // std::stringstream ss;
         // ss << "Angle: ";
@@ -24,7 +23,7 @@ void reset(okapi::QLength x, okapi::QLength y,
         // master.setText(0, 0, ss.str());
     }
     robot::drive::resetEncoders();
-    robot::drive::model->resetGyro(initialAngle);
+    robot::drive::model->resetImu(initialAngle);
     robot::drive::controller->setPose({x, y, initialAngle});
     robot::drive::controller->setMaxVoltage(1.0 * 12000);
 }
@@ -48,8 +47,10 @@ void rightSide1(bool shouldReset, bool shouldBackOut) {
         reset(0_m, 0_m, 180_deg);
     }
     // Backup to release intake
-    robot::drive::model->xArcade(0.0, -0.6, 0.0);
-    pros::delay(200);
+    robot::drive::model->xArcade(0.0, -0.8, 0.0);
+    pros::delay(100);
+    robot::drive::model->xArcade(0.0, 0.6, 0.0);
+    pros::delay(100);
     robot::drive::model->stop();
     pros::delay(100);
 
@@ -106,7 +107,7 @@ void rightSide2(bool shouldReset, bool shouldBackOut) {
     // Score the second ball by ramming into the goal & backing up
     robot::conveyor::startCountingBalls();
     robot::drive::model->xArcade(0.0, 0.7, 0.0);
-    pros::delay(1000);
+    pros::delay(1000); // 1000 millis
     reset(-0.93_m, 0.12_m, 180_deg, true);
     backupFromGoal();
     //robot::drive::controller->driveForDistanceAsync(0.27_m);

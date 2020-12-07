@@ -1,15 +1,15 @@
 #pragma once
 
 #include "libraidzero/chassis/controller/iodomController.hpp"
+#include "libraidzero/chassis/model/threeEncoderImuXDriveModel.hpp"
 #include "libraidzero/filter/slewRateLimiter.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
+#include "libraidzero/odometry/threeEncoderImuOdometry.hpp"
 #include "libraidzero/trajectory/trajectory.hpp"
 #include "okapi/api/chassis/controller/chassisScales.hpp"
 #include "okapi/api/chassis/model/chassisModel.hpp"
-#include "okapi/api/chassis/model/xDriveModel.hpp"
 #include "okapi/api/control/iterative/iterativePosPidController.hpp"
 #include "okapi/api/odometry/odomState.hpp"
-#include "okapi/api/odometry/odometry.hpp"
 #include "okapi/api/odometry/point.hpp"
 #include "okapi/api/units/QAngle.hpp"
 #include "okapi/api/units/QLength.hpp"
@@ -41,8 +41,8 @@ public:
      */
     XOdomController(
         TimeUtil itimeUtil,
-        std::shared_ptr<XDriveModel> imodel,
-        std::shared_ptr<Odometry> iodometry,
+        std::shared_ptr<ThreeEncoderImuXDriveModel> imodel,
+        std::shared_ptr<ThreeEncoderImuOdometry> iodometry,
         std::unique_ptr<IterativePosPIDController> idistancePid,
         std::unique_ptr<IterativePosPIDController> ianglePid,
         std::unique_ptr<IterativePosPIDController> iturnPid,
@@ -236,8 +236,8 @@ public:
      */
     void waitForOdomTask() override;
 protected:
-    std::shared_ptr<XDriveModel> model {nullptr};
-    std::shared_ptr<Odometry> odometry {nullptr};
+    std::shared_ptr<ThreeEncoderImuXDriveModel> model {nullptr};
+    std::shared_ptr<ThreeEncoderImuOdometry> odometry {nullptr};
     std::unique_ptr<IterativePosPIDController> distancePid {nullptr};
     std::unique_ptr<IterativePosPIDController> anglePid {nullptr};
     std::unique_ptr<IterativePosPIDController> turnPid {nullptr};

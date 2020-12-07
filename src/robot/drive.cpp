@@ -11,7 +11,7 @@ namespace robot::drive {
 	std::unique_ptr<XOdomController> controller;
     //std::shared_ptr<AsyncRamsetePathController> pathFollower;
     std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
-    std::shared_ptr<ThreeEncoderGyroXDriveModel> model;
+    std::shared_ptr<ThreeEncoderImuXDriveModel> model;
 
 	void init() {
         IterativePosPIDController::Gains DISTANCE_GAINS {
@@ -41,8 +41,8 @@ namespace robot::drive {
         auto leftEnc = std::make_shared<ADIEncoder>('C', 'D', true);
         auto rightEnc = std::make_shared<ADIEncoder>('G', 'H', false);
         auto midEnc = std::make_shared<ADIEncoder>('E', 'F', true);
-        auto gyro = std::make_shared<pros::Imu>(19);
-        model = std::make_shared<ThreeEncoderGyroXDriveModel>(
+        auto gyro = std::make_shared<BetterIMU>(19, IMUAxes::z);
+        model = std::make_shared<ThreeEncoderImuXDriveModel>(
             leftLeader,
             rightLeader,
             std::make_shared<Motor>(-3),
@@ -65,7 +65,7 @@ namespace robot::drive {
         controller = std::make_unique<XOdomController>(
             TimeUtilFactory::createDefault(),
             model,
-            std::make_shared<ThreeEncoderGyroOdometry>(
+            std::make_shared<ThreeEncoderImuOdometry>(
                 TimeUtilFactory::createDefault(), model, odomScales, controllerLogger
             ),
             std::make_unique<IterativePosPIDController>(DISTANCE_GAINS,
@@ -118,10 +118,7 @@ namespace robot::drive {
         );
 
         pros::delay(1000);
-        gyro->reset();
-        while (gyro->is_calibrating()) { // Stop for about 2 seconds
-            pros::delay(500);
-        }
+        gyro->calibrate();
 
         /*pathFollower = AsyncRamsetePathControllerBuilder()
 			.withLimits({DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, DRIVE_MAX_JERK})
@@ -147,7 +144,7 @@ namespace robot::drive {
     void fieldOrientedControl(double irightSpeed, double iforwardSpeed, 
         double iyaw, double ithreshold) 
     {
-        auto angle = -model->getSensorVals()[3] / GYRO_RESOLUTION * degree;
+        auto angle = -model->getHeading() * degree;
         //std::cout << "Angle: " << angle.convert(degree) << std::endl;
         Translation2d input {irightSpeed * meter, iforwardSpeed * meter};
         input = input.rotateBy(Rotation2d{-angle});

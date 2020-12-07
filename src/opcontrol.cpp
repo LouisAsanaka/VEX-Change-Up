@@ -75,7 +75,7 @@ void opcontrol() {
 
 		//std::cout << robot::drive::controller->getState().str() << std::endl;
 		if (master.getDigital(ControllerDigital::A)) {
-			robot::drive::model->resetGyro();
+			robot::drive::model->resetImu();
 		}
 		if (master.getDigital(ControllerDigital::R1)) {
 			robot::intake::spinIn(1.0);

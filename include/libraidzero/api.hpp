@@ -6,7 +6,7 @@
 #include "libraidzero/chassis/controller/odomController.hpp"
 #include "libraidzero/chassis/controller/xOdomController.hpp"
 
-#include "libraidzero/chassis/model/threeEncoderGyroXDriveModel.hpp"
+#include "libraidzero/chassis/model/threeEncoderImuXDriveModel.hpp"
 
 #include "libraidzero/controller/util/ramseteUtil.hpp"
 #include "libraidzero/controller/asyncAdvancedProfileController.hpp"
@@ -24,7 +24,7 @@
 #include "libraidzero/kinematics/driveWheelSpeeds.hpp"
 #include "libraidzero/kinematics/kinematics.hpp"
 
-#include "libraidzero/odometry/threeEncoderGyroOdometry.hpp"
+#include "libraidzero/odometry/threeEncoderImuOdometry.hpp"
 
 #include "libraidzero/planner/hermiteInterpolator.hpp"
 #include "libraidzero/planner/polynomialFunction.hpp"

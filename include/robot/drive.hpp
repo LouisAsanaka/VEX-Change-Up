@@ -8,7 +8,7 @@ namespace robot::drive {
 	extern std::unique_ptr<XOdomController> controller;
     //extern std::shared_ptr<AsyncRamsetePathController> pathFollower;
     extern std::shared_ptr<AsyncAdvancedProfileController> profileFollower;
-	extern std::shared_ptr<ThreeEncoderGyroXDriveModel> model;
+	extern std::shared_ptr<ThreeEncoderImuXDriveModel> model;
 
 	void init();
 

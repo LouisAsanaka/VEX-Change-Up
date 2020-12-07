@@ -7,17 +7,15 @@
  */
 #pragma once
 
+#include "libraidzero/device/betterIMU.hpp"
 #include "okapi/api/chassis/model/threeEncoderXDriveModel.hpp"
 #include "okapi/api/chassis/model/xDriveModel.hpp"
 #include "okapi/api/units/QAngle.hpp"
-#include "pros/imu.hpp"
-
-#define GYRO_RESOLUTION 100.0
 
 using namespace okapi::literals;
 
-class ThreeEncoderGyroXDriveModel : public okapi::ThreeEncoderXDriveModel {
-    public:
+class ThreeEncoderImuXDriveModel : public okapi::ThreeEncoderXDriveModel {
+public:
     /**
      * Model for an x drive (wheels at 45 deg from a skid steer drive). When all motors are powered
      * +100%, the robot should move forward in a straight line.
@@ -29,18 +27,20 @@ class ThreeEncoderGyroXDriveModel : public okapi::ThreeEncoderXDriveModel {
      * @param ileftEnc The left side encoder.
      * @param irightEnc The right side encoder.
      * @param imiddleEnc The middle encoder.
-     * @param igyro The IMU / gyro.
+     * @param iimu The IMU.
      */
-    ThreeEncoderGyroXDriveModel(std::shared_ptr<okapi::AbstractMotor> itopLeftMotor,
-                                std::shared_ptr<okapi::AbstractMotor> itopRightMotor,
-                                std::shared_ptr<okapi::AbstractMotor> ibottomRightMotor,
-                                std::shared_ptr<okapi::AbstractMotor> ibottomLeftMotor,
-                                std::shared_ptr<okapi::ContinuousRotarySensor> ileftEnc,
-                                std::shared_ptr<okapi::ContinuousRotarySensor> irightEnc,
-                                std::shared_ptr<okapi::ContinuousRotarySensor> imiddleEnc,
-                                std::shared_ptr<pros::Imu> igyro,
-                                double imaxVelocity,
-                                double imaxVoltage);
+    ThreeEncoderImuXDriveModel(
+        std::shared_ptr<okapi::AbstractMotor> itopLeftMotor,
+        std::shared_ptr<okapi::AbstractMotor> itopRightMotor,
+        std::shared_ptr<okapi::AbstractMotor> ibottomRightMotor,
+        std::shared_ptr<okapi::AbstractMotor> ibottomLeftMotor,
+        std::shared_ptr<okapi::ContinuousRotarySensor> ileftEnc,
+        std::shared_ptr<okapi::ContinuousRotarySensor> irightEnc,
+        std::shared_ptr<okapi::ContinuousRotarySensor> imiddleEnc,
+        std::shared_ptr<BetterIMU> iimu,
+        double imaxVelocity,
+        double imaxVoltage
+    );
   
     /**
      * Read the sensors.
@@ -48,15 +48,15 @@ class ThreeEncoderGyroXDriveModel : public okapi::ThreeEncoderXDriveModel {
      * @return sensor readings in the format {left, right, middle, heading}
      */
     std::valarray<std::int32_t> getSensorVals() const override;
+
+    double getHeading() const;
   
     /**
      * Reset the sensors to their zero point.
      */
     void resetSensors() override;
 
-    void resetGyro(okapi::QAngle angle = 0_deg);
-  
-    protected:
-    std::shared_ptr<pros::Imu> gyro;
-    int headingOffset = 0;
+    void resetImu(okapi::QAngle iangle = 0_deg);
+protected:
+    std::shared_ptr<BetterIMU> imu;
 };
