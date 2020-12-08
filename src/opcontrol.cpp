@@ -9,6 +9,10 @@
 #include <string>
 
 void opcontrol() {
+	#if defined(RUN_WITHOUT_ROBOT) && RUN_WITHOUT_ROBOT 
+	return;
+	#endif
+
 	Controller master {ControllerId::master};
 
 	bool xDriveRegularOverride = false;

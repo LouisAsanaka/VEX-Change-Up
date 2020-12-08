@@ -2,6 +2,7 @@
 #include <memory>
 #include <utility>
 
+#include "gui.hpp"
 #include "libraidzero/chassis/controller/xOdomController.hpp"
 #include "libraidzero/chassis/model/threeEncoderImuXDriveModel.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
@@ -373,9 +374,19 @@ void XOdomController::loop() {
 
     LOG_INFO_S("Started XOdomController odometry task.");
 
+    int i = 0;
     auto rate = timeUtil.getRate();
     while (!dtorCalled.load(std::memory_order_acquire) && (task->notifyTake(0) == 0U)) {
         odometry->step();
+        if (i == 5) {
+            auto currentPose = Pose2d::fromOdomState(getState());
+            GUI::getInstance().setData({
+                currentPose.translation().x(), currentPose.translation().y(), currentPose.rotation().angle()
+            }, {0, 0, 0});
+            i = 0;
+        } else {
+            ++i;
+        }
         rate->delayUntil(10_ms);
     }
     odomTaskRunning = false;

@@ -6,19 +6,34 @@
 #include "robot/drive.hpp"
 #include "robot/intake.hpp"
 
+#include "gui.hpp"
+
 #include <exception>
 #include <string>
 #include <sstream>
 
 void autonomous() {
+    #if defined(RUN_WITHOUT_ROBOT) && RUN_WITHOUT_ROBOT 
+	return;
+	#endif
+
     auto startTime = pros::millis();
 
-    reset(0_in, 0_in, 0_deg, false);
-    robot::drive->controller->turnAngle(90_deg);
-    std::cout << Pose2d::fromOdomState(robot::drive->controller->getState()).toString() << std::endl;
-    // robot::drive->controller->strafeToPose({16_in, 16_in, 90_deg});
-    // pros::delay(1000);
-    // robot::drive->controller->strafeToPose({0_in, 16_in, -45_deg});
+    const std::string& selectedAuton = GUI::getInstance().selectedAuton;
+    if (selectedAuton == "Right 1") {
+        rightSide1(true, true);
+    } else if (selectedAuton == "Right 2") {
+        rightSide2(true, true);
+    } else if (selectedAuton == "Right 3") {
+        rightSide3(true);
+    } else {
+        reset(0_in, 0_in, 0_deg, false);
+        robot::drive->controller->turnAngle(90_deg);
+        std::cout << Pose2d::fromOdomState(robot::drive->controller->getState()).toString() << std::endl;
+        // robot::drive->controller->strafeToPose({16_in, 16_in, 90_deg});
+        // pros::delay(1000);
+        // robot::drive->controller->strafeToPose({0_in, 16_in, -45_deg});
+    }
 
     std::stringstream ss;
     ss << "Time: ";

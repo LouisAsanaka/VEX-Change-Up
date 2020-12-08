@@ -1,5 +1,6 @@
 #include "main.h"
 #include "autonomous.hpp"
+#include "gui.hpp"
 #include "opcontrol.hpp"
 #include "robot.hpp"
 
@@ -11,8 +12,11 @@ void initialize() {
             Logger::LogLevel::info
         )
     );
-    pros::lcd::initialize();
-	robot::init();
+    GUI::getInstance().initMenu();
+    #if defined(RUN_WITHOUT_ROBOT) && RUN_WITHOUT_ROBOT
+    #else
+    robot::init();
+	#endif
 }
 
 void competition_initialize() {}

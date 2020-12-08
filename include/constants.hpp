@@ -7,6 +7,8 @@
 
 using namespace okapi::literals;
 
+#define RUN_WITHOUT_ROBOT 1
+
 constexpr int OPCONTROL_DURATION = 105 * 1000;
 constexpr int TIME_TILL_15_SECONDS = OPCONTROL_DURATION - 15 * 1000;
 
