@@ -10,7 +10,7 @@ using namespace okapi::literals;
 constexpr int OPCONTROL_DURATION = 105 * 1000;
 constexpr int TIME_TILL_15_SECONDS = OPCONTROL_DURATION - 15 * 1000;
 
-constexpr okapi::QLength WHEEL_TRACK                  = 12.63_in;
+constexpr okapi::QLength WHEEL_TRACK                  = 12.9_in; //12.63
 constexpr okapi::QLength TRACKING_WHEEL_DIAMETER      = 2.80_in;
 constexpr okapi::QLength TRACKING_BACK_WHEEL_DISTANCE = 5.7_in;
 
@@ -44,11 +44,11 @@ constexpr double ANGLE_KP = 0.002;
 constexpr double ANGLE_KI = 0.0;
 constexpr double ANGLE_KD = 0.0;
 
-constexpr double TURN_KP = 0.006;
+constexpr double TURN_KP = 0.0045;
 constexpr double TURN_KI = 0.001;
-constexpr double TURN_KD = 0.000065;
+constexpr double TURN_KD = 0.00009;
 
-constexpr double STRAFE_DISTANCE_KP = 3.5;
+constexpr double STRAFE_DISTANCE_KP = 3.3;
 constexpr double STRAFE_DISTANCE_KI = 0.0;
 constexpr double STRAFE_DISTANCE_KD = 0.004;
 
@@ -56,7 +56,7 @@ constexpr double STRAFE_ANGLE_KP = 2.1;
 constexpr double STRAFE_ANGLE_KI = 0.0;
 constexpr double STRAFE_ANGLE_KD = 0.03;
 
-constexpr double STRAFE_SLEW_RATE = 0.15; // m / ms
+constexpr double STRAFE_SLEW_RATE = 0.10; // m / ms
 
 // Controller
 constexpr double CONTROLLER_DEADBAND = 0.1;
