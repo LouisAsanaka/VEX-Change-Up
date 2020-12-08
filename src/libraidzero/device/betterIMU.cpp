@@ -1,6 +1,6 @@
 #include "libraidzero/device/betterIMU.hpp"
 
-BetterIMU::BetterIMU(std::uint8_t iport, okapi::IMUAxes iaxis) 
+BetterIMU::BetterIMU(std::uint8_t iport, IMUAxes iaxis) 
     : IMU{iport, iaxis} {} 
 
 double BetterIMU::getRawAngle() {
@@ -11,11 +11,11 @@ double BetterIMU::getRawAngle() {
     return angle - offset;
 }
 
-std::int32_t BetterIMU::reset(okapi::QAngle iangle) {
+std::int32_t BetterIMU::reset(QAngle iangle) {
     offset = readAngle();
     if (offset == PROS_ERR) {
         return PROS_ERR;
     }
-    offset += iangle.convert(okapi::degree);
+    offset += iangle.convert(degree);
     return 1;
 }

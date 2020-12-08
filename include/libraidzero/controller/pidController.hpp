@@ -31,17 +31,17 @@ public:
     void setOutputLimits(double min, double max);
 
     void setSetpoint(double sp);
-    double getSetpoint();
+    double getSetpoint() const;
 
     void setTolerance(double positionTolerance,
                       double velocityTolerance = std::numeric_limits<double>::infinity());
-    bool atSetpoint();
+    bool atSetpoint() const;
 
     double calculate(double measurement, double sp);
     double calculate(double measurement);
 
-    double getPositionError();
-    double getVelocityError();
+    double getPositionError() const;
+    double getVelocityError() const;
 
     void reset();
 private:

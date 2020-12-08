@@ -30,7 +30,7 @@ void PIDController::setSetpoint(double sp) {
     setpoint = sp;
 }
 
-double PIDController::getSetpoint() {
+double PIDController::getSetpoint() const {
     return setpoint;
 }
 
@@ -39,7 +39,7 @@ void PIDController::setTolerance(double positionTolerance, double velocityTolera
     velTol = velocityTolerance;
 }
 
-bool PIDController::atSetpoint() {
+bool PIDController::atSetpoint() const {
     return std::abs(positionError) < posTol && std::abs(velocityError) < velTol; 
 }
 
@@ -60,11 +60,11 @@ double PIDController::calculate(double measurement) {
     return std::clamp(kP * positionError + kI * totalError + kD * velocityError, minOutput, maxOutput);
 }
 
-double PIDController::getPositionError() {
+double PIDController::getPositionError() const {
     return positionError;
 }
 
-double PIDController::getVelocityError() {
+double PIDController::getVelocityError() const {
     return velocityError;
 }
 

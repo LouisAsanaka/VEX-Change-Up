@@ -1,4 +1,5 @@
 #include "libraidzero/geometry/rotation2d.hpp"
+
 #include <cmath>
 
 Rotation2d::Rotation2d(okapi::QAngle value)

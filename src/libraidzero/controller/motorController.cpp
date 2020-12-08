@@ -1,16 +1,16 @@
 #include "libraidzero/controller/motorController.hpp"
-#include "okapi/api/control/async/asyncPosIntegratedController.hpp"
-#include "okapi/impl/control/async/asyncPosControllerBuilder.hpp"
-#include "okapi/impl/device/motor/motorGroup.hpp"
 
-MotorController::MotorController(const okapi::MotorGroup& motorRef) :
-        motor {std::make_shared<okapi::MotorGroup>(motorRef)},
+#include "okapi/api.hpp"
+
+MotorController::MotorController(const MotorGroup& motorRef) :
+        motor {std::make_shared<MotorGroup>(motorRef)},
         maxVelocity {toUnderlyingType(motor->getGearing())},
         posController {
-            std::static_pointer_cast<okapi::AsyncPosIntegratedController>(
-                okapi::AsyncPosControllerBuilder()
+            std::static_pointer_cast<AsyncPosIntegratedController>(
+                AsyncPosControllerBuilder()
                     .withMotor(motor)
                     .withMaxVelocity(maxVelocity)
+                    .withGearset(motor->getGearing())
                     .build()
             )
         }
@@ -18,7 +18,7 @@ MotorController::MotorController(const okapi::MotorGroup& motorRef) :
     posController->flipDisable(true);
 }
 
-std::shared_ptr<okapi::MotorGroup> MotorController::getMotor() const {
+std::shared_ptr<MotorGroup> MotorController::getMotor() const {
     return motor;
 }
 

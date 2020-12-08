@@ -86,13 +86,9 @@ Drive::Drive() {
         std::make_unique<SlewRateLimiter>(STRAFE_SLEW_RATE),
         gearing, odomScales, DISTANCE_BEFORE_MOVE, ANGLE_BEFORE_TURN, controllerLogger
     );
-    controller->startOdomThread();
+    controller->startTask();
     if (NOT_INITIALIZE_TASK && NOT_COMP_INITIALIZE_TASK) {
-        controller->getOdomThread()->notifyWhenDeletingRaw(pros::c::task_get_current());
-    }
-    controller->startThread();
-    if (NOT_INITIALIZE_TASK && NOT_COMP_INITIALIZE_TASK) {
-        controller->getThread()->notifyWhenDeletingRaw(pros::c::task_get_current());
+        controller->notifyWhenDeletingRaw(pros::c::task_get_current());
     }
 
     model->setBrakeMode(AbstractMotor::brakeMode::brake);
@@ -121,7 +117,7 @@ void Drive::resetEncoders() {
     pros::delay(50);
 }
 
-void Drive::stop() {
+void Drive::stop() const {
     controller->stop();
 }
 } // namespace robot

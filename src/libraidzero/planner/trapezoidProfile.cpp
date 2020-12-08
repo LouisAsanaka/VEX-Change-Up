@@ -1,4 +1,5 @@
 #include "libraidzero/planner/trapezoidProfile.hpp"
+
 #include <cmath>
 #include <algorithm>
 

@@ -1,4 +1,5 @@
 #include "libraidzero/kinematics/driveWheelSpeeds.hpp"
+
 #include <cmath>
 
 void DriveWheelSpeeds::normalize(okapi::QSpeed maxSpeed) {

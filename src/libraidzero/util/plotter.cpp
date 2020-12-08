@@ -1,4 +1,5 @@
 #include "libraidzero/util/plotter.hpp"
+
 #include <sstream>
 #include <string>
 #include <iostream>

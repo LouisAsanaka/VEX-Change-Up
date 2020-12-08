@@ -2,6 +2,7 @@
 
 #include "okapi/api/util/logging.hpp"
 #include "pros/rtos.h"
+
 #include <cmath>
 #include <string>
 #include <memory>

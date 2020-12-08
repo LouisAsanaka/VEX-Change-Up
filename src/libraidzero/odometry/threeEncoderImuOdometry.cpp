@@ -1,6 +1,5 @@
 #include "libraidzero/odometry/threeEncoderImuOdometry.hpp"
-#include "okapi/api/units/QAngularSpeed.hpp"
-#include "okapi/api/util/mathUtil.hpp"
+
 #include <cmath>
 
 ThreeEncoderImuOdometry::ThreeEncoderImuOdometry(

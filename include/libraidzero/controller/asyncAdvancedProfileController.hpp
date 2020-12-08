@@ -9,20 +9,15 @@
 
 #include "libraidzero/planner/profileStructs.hpp"
 #include "libraidzero/kinematics/kinematics.hpp"
-#include "okapi/api/chassis/controller/chassisScales.hpp"
-#include "okapi/api/chassis/model/skidSteerModel.hpp"
-#include "okapi/api/control/async/asyncPositionController.hpp"
-#include "okapi/api/control/util/pathfinderUtil.hpp"
-#include "okapi/api/units/QAngularSpeed.hpp"
-#include "okapi/api/units/QSpeed.hpp"
-#include "okapi/api/util/logging.hpp"
-#include "okapi/api/util/timeUtil.hpp"
+
+#include "okapi/api.hpp"
+
 #include <atomic>
 #include <map>
 
 using namespace okapi;
 
-class AsyncAdvancedProfileController : public okapi::AsyncPositionController<std::string, planner::UnitableWaypoint> {
+class AsyncAdvancedProfileController : public AsyncPositionController<std::string, planner::UnitableWaypoint> {
 public:
     /**
      * An Async Controller which generates and follows 2D motion profiles. Throws a
@@ -276,7 +271,7 @@ public:
     // This must be locked when accessing the current path
     CrossplatformMutex currentPathMutex;
 
-    std::string currentPath{""};
+    std::string currentPath;
     std::atomic_bool isRunning{false};
     std::atomic_int direction{1};
     std::atomic_bool mirrored{false};

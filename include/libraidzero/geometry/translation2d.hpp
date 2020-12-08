@@ -1,6 +1,7 @@
 #pragma once
 
 #include "libraidzero/geometry/rotation2d.hpp"
+
 #include "okapi/api/units/QLength.hpp"
 
 using namespace okapi::literals;

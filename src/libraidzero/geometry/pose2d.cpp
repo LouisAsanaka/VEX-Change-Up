@@ -1,4 +1,5 @@
 #include "libraidzero/geometry/pose2d.hpp"
+
 #include <cmath>
 
 Pose2d::Pose2d(Translation2d translation, Rotation2d rotation)

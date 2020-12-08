@@ -1,14 +1,13 @@
 #pragma once
 
-#include "okapi/api/units/QAngle.hpp"
-#include "okapi/impl/device/rotarysensor/IMU.hpp"
+#include "okapi/api.hpp"
 
-using namespace okapi::literals;
+using namespace okapi;
 
-class BetterIMU : public okapi::IMU {
+class BetterIMU : public IMU {
 public:
-    BetterIMU(std::uint8_t iport, okapi::IMUAxes iaxis = okapi::IMUAxes::z);
+    BetterIMU(std::uint8_t iport, IMUAxes iaxis = IMUAxes::z);
 
     double getRawAngle();
-    std::int32_t reset(okapi::QAngle iangle = 0_deg);
+    std::int32_t reset(QAngle iangle = 0_deg);
 };

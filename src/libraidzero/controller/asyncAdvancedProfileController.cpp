@@ -9,11 +9,9 @@
 #include "libraidzero/kinematics/chassisSpeeds.hpp"
 #include "libraidzero/planner/profilePlanner.hpp"
 #include "libraidzero/planner/profileStructs.hpp"
-#include "okapi/api/odometry/point.hpp"
-#include "okapi/api/units/QAngle.hpp"
-#include "okapi/api/units/QTime.hpp"
-#include "okapi/api/util/logging.hpp"
-#include "okapi/api/util/mathUtil.hpp"
+
+#include "okapi/api.hpp"
+
 #include <algorithm>
 #include <iostream>
 #include <mutex>

@@ -26,7 +26,7 @@ public:
     /**
      * Stops all the motors on the drivetrain
      */
-	void stop();
+	void stop() const;
 };
 
 }

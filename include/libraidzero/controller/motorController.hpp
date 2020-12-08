@@ -1,29 +1,31 @@
 #pragma once
 
-#include "okapi/api/control/async/asyncPosIntegratedController.hpp"
-#include "okapi/impl/device/motor/motorGroup.hpp"
+#include "okapi/api.hpp"
+
 #include <memory>
+
+using namespace okapi;
 
 class MotorController {
     static constexpr int MAX_VOLTAGE = 12000;
 private:
-    std::shared_ptr<okapi::MotorGroup> motor;
+    std::shared_ptr<MotorGroup> motor;
     int maxVelocity;
-    std::shared_ptr<okapi::AsyncPosIntegratedController> posController;
+    std::shared_ptr<AsyncPosIntegratedController> posController;
 public:
     /**
      * Generic motor controller that can control both voltage & position (PID).
      *
      * @param motor the motor to control
      */
-    MotorController(const okapi::MotorGroup& motor);
+    MotorController(const MotorGroup& motor);
 
     /**
      * Returns the motor.
      *
      * @return the motor
      */
-    std::shared_ptr<okapi::MotorGroup> getMotor() const;
+    std::shared_ptr<MotorGroup> getMotor() const;
 
     /**
      * Returns the absolute position of the motor in its encoder units.

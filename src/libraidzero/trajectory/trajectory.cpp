@@ -1,5 +1,6 @@
 #include "libraidzero/trajectory/trajectory.hpp"
-#include "libraidzero/util/miscUtil.hpp"
+#include "libraidzero/util/mathUtil.hpp"
+
 #include <utility>
 #include <iostream>
 #include <vector>
@@ -111,13 +112,13 @@ std::vector<Trajectory::State> Trajectory::segmentToStates(const SegmentPtr& tra
             angularVel = 0.0;
         } else {
             auto& nextSegment = traj.get()[i + 1];
-            angularVel = (constrainAngle(nextSegment.heading) - constrainAngle(segment.heading))
+            angularVel = (constrainAnglePi(nextSegment.heading) - constrainAnglePi(segment.heading))
                 / nextSegment.dt;
         }
         states.emplace_back(t, segment.velocity, segment.acceleration, angularVel,
             Pose2d{
                 segment.x * okapi::meter, segment.y * okapi::meter,
-                Rotation2d{constrainAngle(segment.heading) * okapi::radian}
+                Rotation2d{constrainAnglePi(segment.heading) * okapi::radian}
             }
         );
         // std::cout << states[i].pose.toString() << std::endl;
@@ -143,14 +144,14 @@ std::vector<Trajectory::State> Trajectory::profileToStates(const planner::Motion
             angularVel = 0.0;
         } else {
             auto& nextPoint = profile.pathPoints[i + 1];
-            angularVel = (constrainAngle(nextPoint.angle) - constrainAngle(point.angle))
+            angularVel = (constrainAnglePi(nextPoint.angle) - constrainAnglePi(point.angle))
                 / nextPoint.time;
         }
         // No acceleration info
         states.emplace_back(t, point.velocity, point.acceleration, angularVel,
             Pose2d{
                 point.x * okapi::meter, point.y * okapi::meter,
-                Rotation2d{constrainAngle(point.angle) * okapi::radian}
+                Rotation2d{constrainAnglePi(point.angle) * okapi::radian}
             }
         );
         // std::cout << states[i].pose.toString() << std::endl;

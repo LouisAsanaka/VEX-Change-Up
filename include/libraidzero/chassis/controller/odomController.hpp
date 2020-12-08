@@ -1,16 +1,8 @@
 #pragma once
 
 #include "libraidzero/chassis/controller/iodomController.hpp"
-#include "okapi/api/chassis/controller/chassisScales.hpp"
-#include "okapi/api/chassis/model/chassisModel.hpp"
-#include "okapi/api/control/iterative/iterativePosPidController.hpp"
-#include "okapi/api/odometry/odomState.hpp"
-#include "okapi/api/odometry/odometry.hpp"
-#include "okapi/api/odometry/point.hpp"
-#include "okapi/api/units/QAngle.hpp"
-#include "okapi/api/units/QLength.hpp"
-#include "okapi/api/util/timeUtil.hpp"
-#include <atomic>
+
+#include "okapi/api.hpp"
 
 using namespace okapi;
 

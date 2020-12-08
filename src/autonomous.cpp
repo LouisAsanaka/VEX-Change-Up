@@ -10,6 +10,27 @@
 #include <string>
 #include <sstream>
 
+void autonomous() {
+    auto startTime = pros::millis();
+
+    reset(0_in, 0_in, 0_deg, false);
+    robot::drive->controller->turnAngle(90_deg);
+    std::cout << Pose2d::fromOdomState(robot::drive->controller->getState()).toString() << std::endl;
+    // robot::drive->controller->strafeToPose({16_in, 16_in, 90_deg});
+    // pros::delay(1000);
+    // robot::drive->controller->strafeToPose({0_in, 16_in, -45_deg});
+
+    std::stringstream ss;
+    ss << "Time: ";
+    ss << (pros::millis() - startTime) / 1000.0;
+    ss << " s";
+
+    std::cout << ss.str() << std::endl;
+
+    Controller master {ControllerId::master};
+    master.setText(0, 0, ss.str());
+}
+
 void reset(okapi::QLength x, okapi::QLength y, 
            okapi::QAngle initialAngle, bool currentAngle) {
     if (currentAngle) {
@@ -55,23 +76,22 @@ void rightSide1(bool shouldReset, bool shouldBackOut) {
     pros::delay(100);
 
     // Strafe to face the corner goal
-    robot::drive->controller->strafeToPoseAsync({0.04_m, 0.50_m, 225_deg});
-    robot::drive->controller->waitUntilSettled(1500);
+    robot::drive->controller->strafeToPose({0.04_m, 0.50_m, 225_deg}, 1500);
     pros::delay(60);
 
     // Intake the ball in front of the corner goal
-    robot::drive->controller->driveForDistanceAsync(0.385_m);
+    robot::drive->controller->driveForDistance(0.385_m, 500);
     robot::intake->spinIn(1.0);
     pros::delay(900);
     robot::intake->stop();
-    robot::drive->controller->waitUntilSettled(500);
+    // TODO(louis): ASYNC ACTION
 
     // Finish scoring the preload ball
-    robot::drive->controller->driveForDistanceAsync(0.20_m);
+    robot::drive->controller->driveForDistance(0.20_m, 500);
     robot::conveyor->startCountingBalls();
     robot::conveyor->moveBoth(1.0);
     robot::conveyor->waitUntilPassed(1);
-    robot::drive->controller->waitUntilSettled(500);
+    // TODO(louis): ASYNC ACTION
     //std::cout << "pop: " << Pose2d::fromOdomState(robot::drive->controller->getState()).toString() << std::endl;
 
     if (shouldBackOut) {
@@ -89,10 +109,10 @@ void rightSide2(bool shouldReset, bool shouldBackOut) {
     // Backout to second goal
     robot::intake->spinOut(1.0);
     robot::drive->controller->setMaxVoltage(0.85 * 12000);
-    robot::drive->controller->strafeToPoseAsync({-0.93_m, 0.43_m, 180_deg});
+    robot::drive->controller->strafeToPose({-0.93_m, 0.43_m, 180_deg}, 2500);
     pros::delay(500);
     robot::intake->stop();
-    robot::drive->controller->waitUntilSettled(2500);
+    // TODO(louis): ASYNC ACTION
     // std::cout << "Final: " << robot::drive->controller->getState().str() << std::endl;
     // return;
 
@@ -110,11 +130,10 @@ void rightSide2(bool shouldReset, bool shouldBackOut) {
     pros::delay(1000); // 1000 millis
     reset(-0.93_m, 0.12_m, 180_deg, true);
     backupFromGoal();
-    //robot::drive->controller->driveForDistanceAsync(0.27_m);
+    //robot::drive->controller->driveForDistance(0.27_m);
     //pros::delay(150);
     robot::conveyor->moveBoth(1.0);
     robot::conveyor->waitUntilPassed(1);
-    robot::drive->controller->waitUntilSettled(100);
     if (shouldBackOut) {
         backout(1000);
     }
@@ -128,17 +147,17 @@ void rightSide3(bool shouldReset) {
     backout(700);
     
     // Move to third goal while out-taking
-    robot::drive->controller->strafeToPoseAsync({-2.05_m, 0.40_m, 135_deg});
+    robot::drive->controller->strafeToPose({-2.05_m, 0.40_m, 135_deg}, 2000);
     robot::intake->spinOut(1.0);
     pros::delay(500);
     robot::intake->stop();
-    robot::drive->controller->waitUntilSettled(2000);
+    // TODO(louis): ASYNC ACTION
 
     // Intake the ball in front of the third goal & score it
     robot::conveyor->startCountingBalls();
-    robot::drive->controller->driveForDistanceAsync(0.35_m);
+    robot::drive->controller->driveForDistance(0.35_m, 500);
     robot::intake->spinIn(1.0);
-    robot::drive->controller->waitUntilSettled(500);
+    // TODO(louis): ASYNC ACTION
     pros::delay(400);
     robot::intake->stop();
 
@@ -155,60 +174,4 @@ void rightSide3(bool shouldReset) {
     pros::delay(800);
     robot::intake->stop();
     robot::drive->model->stop();
-}
-
-void autonomous() {
-    /*robot::drive->generatePath({
-        {0_m, 0_m, 0_deg},
-        {3.0_ft, 3.0_ft, 0_deg}
-    }, "test");
-    robot::drive->resetEncoders();
-
-    robot::drive->followPath("test", true);*/
-    auto startTime = pros::millis();
-    // reset(180_deg);
-    // robot::drive->controller->strafeToPoseAsync({0.04_m, 0.50_m, 225_deg});
-    // robot::drive->controller->waitUntilSettled(5000);
-    rightSide3(true);
-
-    std::stringstream ss;
-    ss << "Time: ";
-    ss << (pros::millis() - startTime) / 1000.0;
-    ss << " s";
-
-    std::cout << ss.str() << std::endl;
-
-    Controller master {ControllerId::master};
-    master.setText(0, 0, ss.str());
-    return;
-
-    /*auto profile = planner::ProfilePlanner::generatePath(
-        {
-            {0_m, 0_m, 0_deg},
-            {0.4_m, 0.4_m, -90_deg},
-            {0.8_m, 0.0_m, 0_deg}
-        }, planner::PlannerConfig{DRIVE_MAX_VEL, DRIVE_MAX_ACCEL, 0.0},
-        true
-    );
-    Trajectory traj{Trajectory::profileToStates(profile)};
-
-    robot::drive->controller->followTrajectoryAsync(traj);
-    robot::drive->controller->waitUntilSettled();
-    pros::delay(300);*/
-
-    /*robot::drive->profileFollower->generatePath({
-        {0_m, 0_m, 0_deg},
-        {0.45_m, 0.45_m, 0_deg}
-    }, "forward");
-    robot::drive->profileFollower->generatePath({
-        {0.45_m, 0.45_m, 180_deg},
-        {0_m, 0_m, 180_deg}
-    }, "backward");
-
-    robot::drive->profileFollower->setTarget("forward");
-    robot::drive->profileFollower->flipDisable(false);
-    robot::drive->profileFollower->waitUntilSettled();
-    robot::drive->profileFollower->setTarget("backward", true, true);
-    robot::drive->profileFollower->flipDisable(false);
-    robot::drive->profileFollower->waitUntilSettled();*/
 }

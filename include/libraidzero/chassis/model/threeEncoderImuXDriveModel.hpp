@@ -8,13 +8,12 @@
 #pragma once
 
 #include "libraidzero/device/betterIMU.hpp"
-#include "okapi/api/chassis/model/threeEncoderXDriveModel.hpp"
-#include "okapi/api/chassis/model/xDriveModel.hpp"
-#include "okapi/api/units/QAngle.hpp"
 
-using namespace okapi::literals;
+#include "okapi/api.hpp"
 
-class ThreeEncoderImuXDriveModel : public okapi::ThreeEncoderXDriveModel {
+using namespace okapi;
+
+class ThreeEncoderImuXDriveModel : public ThreeEncoderXDriveModel {
 public:
     /**
      * Model for an x drive (wheels at 45 deg from a skid steer drive). When all motors are powered
@@ -30,13 +29,13 @@ public:
      * @param iimu The IMU.
      */
     ThreeEncoderImuXDriveModel(
-        std::shared_ptr<okapi::AbstractMotor> itopLeftMotor,
-        std::shared_ptr<okapi::AbstractMotor> itopRightMotor,
-        std::shared_ptr<okapi::AbstractMotor> ibottomRightMotor,
-        std::shared_ptr<okapi::AbstractMotor> ibottomLeftMotor,
-        std::shared_ptr<okapi::ContinuousRotarySensor> ileftEnc,
-        std::shared_ptr<okapi::ContinuousRotarySensor> irightEnc,
-        std::shared_ptr<okapi::ContinuousRotarySensor> imiddleEnc,
+        std::shared_ptr<AbstractMotor> itopLeftMotor,
+        std::shared_ptr<AbstractMotor> itopRightMotor,
+        std::shared_ptr<AbstractMotor> ibottomRightMotor,
+        std::shared_ptr<AbstractMotor> ibottomLeftMotor,
+        std::shared_ptr<ContinuousRotarySensor> ileftEnc,
+        std::shared_ptr<ContinuousRotarySensor> irightEnc,
+        std::shared_ptr<ContinuousRotarySensor> imiddleEnc,
         std::shared_ptr<BetterIMU> iimu,
         double imaxVelocity,
         double imaxVoltage
@@ -56,7 +55,7 @@ public:
      */
     void resetSensors() override;
 
-    void resetImu(okapi::QAngle iangle = 0_deg);
+    void resetImu(QAngle iangle = 0_deg);
 protected:
     std::shared_ptr<BetterIMU> imu;
 };
