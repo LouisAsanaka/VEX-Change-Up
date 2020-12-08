@@ -13,7 +13,7 @@ include_directories(
 )
 
 add_library(pathgen STATIC
-    ${CMAKE_SOURCE_DIR}/../src/libraidzero/util/miscUtil.cpp
+    ${CMAKE_SOURCE_DIR}/../src/libraidzero/util/mathUtil.cpp
 	${CMAKE_SOURCE_DIR}/../src/libraidzero/planner/profilePlanner.cpp 
 	${CMAKE_SOURCE_DIR}/../src/libraidzero/planner/polynomialFunction.cpp
 	${CMAKE_SOURCE_DIR}/../src/libraidzero/planner/hermiteInterpolator.cpp
