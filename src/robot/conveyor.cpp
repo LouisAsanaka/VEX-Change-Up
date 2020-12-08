@@ -3,115 +3,101 @@
 #include "libraidzero/api.hpp"
 #include <atomic>
 
-namespace robot::conveyor {
+namespace robot {
 
-	std::unique_ptr<MotorController> topController;
-	std::unique_ptr<MotorController> bottomController;
-	CrossplatformThread* task;
+Conveyor::Conveyor() 
+	: TaskWrapper{}, 
+	  lineTracker{'B'}, average{0},
+	  checkingForBalls{false}, targetBallsPassed{0} 
+{
+	MotorGroup topMotor {{10}};
+	topMotor.setGearing(AbstractMotor::gearset::blue);
+	topMotor.setBrakeMode(AbstractMotor::brakeMode::brake);
 
-	pros::ADIAnalogIn lineTracker{'B'};
-	int average = 0;
+	topController = std::make_unique<MotorController>(topMotor);
+	topController->tarePosition();
 
-	std::atomic_bool checkingForBalls{false};
-	std::atomic_int targetBallsPassed{0};
+	MotorGroup bottomMotor {{-9}};
+	bottomMotor.setGearing(AbstractMotor::gearset::blue);
+	bottomMotor.setBrakeMode(AbstractMotor::brakeMode::brake);
 
-	void init() {
-		MotorGroup topMotor {{10}};
-		topMotor.setGearing(AbstractMotor::gearset::blue);
-		topMotor.setBrakeMode(AbstractMotor::brakeMode::brake);
+	bottomController = std::make_unique<MotorController>(bottomMotor);
+	bottomController->tarePosition();
 
-		topController = std::make_unique<MotorController>(topMotor);
-		topController->tarePosition();
+	average = lineTracker.calibrate();
+}
 
-		MotorGroup bottomMotor {{-9}};
-		bottomMotor.setGearing(AbstractMotor::gearset::blue);
-		bottomMotor.setBrakeMode(AbstractMotor::brakeMode::brake);
-
-		bottomController = std::make_unique<MotorController>(bottomMotor);
-		bottomController->tarePosition();
-
-		startThread();
-
-		average = lineTracker.calibrate();
-	}
-
-    void moveUp(double voltageScale, Position position) {
-		if (position == Position::Top) {
-			topController->moveVoltage(voltageScale);
-		} else {
-			bottomController->moveVoltage(voltageScale);
-		}
-	}
-
-	void moveDown(double voltageScale, Position position) {
-		if (position == Position::Top) {
-			topController->moveVoltage(-voltageScale);
-		} else {
-			bottomController->moveVoltage(-voltageScale);
-		}
-	}
-
-	void moveBoth(double voltageScale) {
-		moveUp(voltageScale, Position::Top);
-    	moveUp(voltageScale, Position::Bottom);
-	}
-
-	void stopAll() {
-		topController->moveVoltage(0);
-		bottomController->moveVoltage(0);
-	}
-
-	void stop(Position position) {
-		if (position == Position::Top) {
-			topController->moveVoltage(0);
-		} else {
-			bottomController->moveVoltage(0);
-		}
-	}
-
-	void startCountingBalls() {
-		if (checkingForBalls.load(std::memory_order_acquire)) {
-			return;
-		}
-		checkingForBalls.store(true, std::memory_order_release);
-		targetBallsPassed.store(99, std::memory_order_release);
-	}
-
-	void waitUntilPassed(int numberOfBalls) {
-		if (!checkingForBalls.load(std::memory_order_acquire)) {
-			return;
-		}
-		targetBallsPassed.store(numberOfBalls, std::memory_order_release);
-		while (checkingForBalls.load(std::memory_order_acquire)) {
-			pros::delay(100);
-		}
-	}
-
-	void startThread() {
-		if (task == nullptr) {
-			task = new CrossplatformThread(trampoline, NULL);
-		}
-	}
-
-	void trampoline(void *context) {
-		while (task->notifyTake(0) == 0U) {
-			if (checkingForBalls.load(std::memory_order_acquire)) {
-				int currentBallsPassed = 0;
-				while (currentBallsPassed < targetBallsPassed.load(std::memory_order_release)) {
-					//std::cout << average << " - " << lineTracker.get_value() << std::endl;
-					if (average - lineTracker.get_value() > 400) {
-						//std::cout << "passed" << std::endl;
-						++currentBallsPassed;
-					}
-					pros::delay(50);
-				}
-				pros::delay(200);
-				stop(Position::Bottom);
-				pros::delay(400);
-				stop(Position::Top);
-				checkingForBalls.store(false, std::memory_order_release);
-			}
-			pros::delay(100);
-		}
+void Conveyor::moveUp(double voltageScale, Position position) {
+	if (position == Position::Top) {
+		topController->moveVoltage(voltageScale);
+	} else {
+		bottomController->moveVoltage(voltageScale);
 	}
 }
+
+void Conveyor::moveDown(double voltageScale, Position position) {
+	if (position == Position::Top) {
+		topController->moveVoltage(-voltageScale);
+	} else {
+		bottomController->moveVoltage(-voltageScale);
+	}
+}
+
+void Conveyor::moveBoth(double voltageScale) {
+	moveUp(voltageScale, Position::Top);
+	moveUp(voltageScale, Position::Bottom);
+}
+
+void Conveyor::stopAll() {
+	topController->moveVoltage(0);
+	bottomController->moveVoltage(0);
+}
+
+void Conveyor::stop(Position position) {
+	if (position == Position::Top) {
+		topController->moveVoltage(0);
+	} else {
+		bottomController->moveVoltage(0);
+	}
+}
+
+void Conveyor::startCountingBalls() {
+	if (checkingForBalls.load(std::memory_order_acquire)) {
+		return;
+	}
+	checkingForBalls.store(true, std::memory_order_release);
+	targetBallsPassed.store(99, std::memory_order_release);
+}
+
+void Conveyor::waitUntilPassed(int numberOfBalls) {
+	if (!checkingForBalls.load(std::memory_order_acquire)) {
+		return;
+	}
+	targetBallsPassed.store(numberOfBalls, std::memory_order_release);
+	while (checkingForBalls.load(std::memory_order_acquire)) {
+		pros::delay(100);
+	}
+}
+
+void Conveyor::loop() {
+	while (task->notifyTake(0) == 0U) {
+		if (checkingForBalls.load(std::memory_order_acquire)) {
+			int currentBallsPassed = 0;
+			while (currentBallsPassed < targetBallsPassed.load(std::memory_order_release)) {
+				//std::cout << average << " - " << lineTracker.get_value() << std::endl;
+				if (average - lineTracker.get_value() > 400) {
+					//std::cout << "passed" << std::endl;
+					++currentBallsPassed;
+				}
+				pros::delay(50);
+			}
+			pros::delay(200);
+			stop(Position::Bottom);
+			pros::delay(400);
+			stop(Position::Top);
+			checkingForBalls.store(false, std::memory_order_release);
+		}
+		pros::delay(100);
+	}
+}
+} // namespace robot

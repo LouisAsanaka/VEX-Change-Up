@@ -3,13 +3,17 @@
 #include "main.h"
 #include "libraidzero/api.hpp"
 
-namespace robot::intake {
+namespace robot {
 
-	extern std::unique_ptr<MotorController> controller;
+class Intake {
+public:
+	std::unique_ptr<MotorController> controller;
 
-	void init();
+	Intake();
 
-	void spinIn(double);
-	void spinOut(double);
-	void stop();
-}
+	void spinIn(double) const;
+	void spinOut(double) const;
+	void stop() const;
+};
+
+} // namespace robot

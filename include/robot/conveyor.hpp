@@ -1,25 +1,27 @@
 #pragma once
 
+#include "libraidzero/util/taskWrapper.hpp"
 #include "main.h"
 #include "libraidzero/api.hpp"
 
-namespace robot::conveyor {
+namespace robot {
 
+class Conveyor : public TaskWrapper {
+public:
 	enum class Position {
 		Top, Bottom
 	};
 
-	extern std::unique_ptr<MotorController> topController;
-	extern std::unique_ptr<MotorController> bottomController;
-	extern CrossplatformThread* task;
+	std::unique_ptr<MotorController> topController;
+	std::unique_ptr<MotorController> bottomController;
 
-	extern pros::ADIAnalogIn lineTracker;
-	extern int average;
+	pros::ADIAnalogIn lineTracker;
+	int average;
 
-	extern std::atomic_bool checkingForBalls;
-	extern std::atomic_int targetBallsPassed;
+	std::atomic_bool checkingForBalls;
+	std::atomic_int targetBallsPassed;
 
-	void init();
+	Conveyor();
 
 	void moveUp(double, Position);
 	void moveDown(double, Position);
@@ -30,6 +32,7 @@ namespace robot::conveyor {
 	void startCountingBalls();
 	void waitUntilPassed(int);
 
-	void startThread();
-	void trampoline(void *);
-}
+	void loop() override;
+};
+
+} // namespace robot
