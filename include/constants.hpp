@@ -30,7 +30,7 @@ constexpr double STRAFING_DIST_TARGET_ERROR       = 0.02;
 constexpr double STRAFING_DIST_TARGET_DERIV       = 5;
 constexpr okapi::QTime STRAFING_DIST_TARGET_TIME  = 150_ms;
 
-constexpr double STRAFING_ANGLE_TARGET_ERROR      = 0.1;
+constexpr double STRAFING_ANGLE_TARGET_ERROR      = 0.05;
 constexpr double STRAFING_ANGLE_TARGET_DERIV      = 5;
 constexpr okapi::QTime STRAFING_ANGLE_TARGET_TIME = 150_ms;
 
@@ -58,7 +58,8 @@ constexpr double STRAFE_ANGLE_KP = 2.1;
 constexpr double STRAFE_ANGLE_KI = 0.0;
 constexpr double STRAFE_ANGLE_KD = 0.03;
 
-constexpr double STRAFE_SLEW_RATE = 0.10; // m / ms
+constexpr double DISTANCE_SLEW_RATE = 1.0; // units / s
+constexpr double ANGLE_SLEW_RATE = 1.0; // units / s
 
 // Controller
 constexpr double CONTROLLER_DEADBAND = 0.1;

@@ -7,7 +7,7 @@ public:
     /**
      * Constructs a SlewRateLimiter.
      * 
-     * @param irateLimit rate limit in units/ms
+     * @param irateLimit rate limit in units/s
      * @param iinitialValue starting value in units
      */
     SlewRateLimiter(double irateLimit, double iinitialValue = 0.0);

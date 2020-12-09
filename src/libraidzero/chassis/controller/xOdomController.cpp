@@ -24,7 +24,8 @@ XOdomController::XOdomController(
     std::unique_ptr<IterativePosPIDController> iturnPid,
     std::unique_ptr<IterativePosPIDController> istrafeDistancePid,
     std::unique_ptr<IterativePosPIDController> istrafeAnglePid,
-    std::unique_ptr<SlewRateLimiter> islewRate,
+    std::unique_ptr<SlewRateLimiter> idistanceSlewRate,
+    std::unique_ptr<SlewRateLimiter> iangleSlewRate,
     const AbstractMotor::GearsetRatioPair& igearset,
     const ChassisScales& iscales,
     QLength idistanceThreshold,
@@ -38,7 +39,8 @@ XOdomController::XOdomController(
     turnPid{std::move(iturnPid)},
     strafeDistancePid{std::move(istrafeDistancePid)},
     strafeAnglePid{std::move(istrafeAnglePid)},
-    slewRate{std::move(islewRate)},
+    distanceSlewRate{std::move(idistanceSlewRate)},
+    angleSlewRate{std::move(iangleSlewRate)},
     gearsetRatioPair{igearset},
     scales{iscales},
     distanceThreshold{idistanceThreshold},
@@ -177,6 +179,7 @@ void XOdomController::turnAngle(QAngle iangle, TurnType iturnType, int itimeout,
 
         angleError = (targetAngle - Pose2d::fromOdomState(getState()).rotation().angle())
             .abs().convert(radian);
+        std::cout << "turnAngle error: " << angleError * 180 / okapi::pi << " deg" << std::endl;
 
         turnPid->step(angleChange);
 
@@ -260,10 +263,13 @@ void XOdomController::updateStrafeToPose(
 
     // Write the absolute distance error
     idistanceError = std::abs(distance);
+    std::cout << "strafeToPose error: " << idistanceError << " m" << std::endl;
 
     // Should always be negated since setpoint is always 0, and distance
     // is always positive. The direction vector only needs the magnitude.
-    double distanceOutput = slewRate->calculate(-strafeDistancePid->step(distance));
+    double preSlewDistanceOutput = -strafeDistancePid->step(distance);
+    double distanceOutput = distanceSlewRate->calculate(preSlewDistanceOutput);
+    std::cout << "Distance Pre-slew: " << preSlewDistanceOutput << " | Slewed: " << distanceOutput << std::endl;
 
     // QAngle gyroRotation = -currentPose.rotation().angle();
     QAngle gyroRotation = -model->getHeading() * degree;
@@ -273,12 +279,9 @@ void XOdomController::updateStrafeToPose(
     directionVector *= distanceOutput;
     directionVector = directionVector.rotateBy(Rotation2d{-gyroRotation});
 
-    // std::cout << "DirX: " << directionVector.x().convert(meter) << ", DirY:" << directionVector.y().convert(meter) << std::endl;
-
-    double angleOutput = strafeAnglePid->step(
-        gyroRotation.convert(radian)
-    );
-    //std::cout << gyroHeading.convert(radian) << " | " << strafeAnglePid->getError() << std::endl;
+    double preSlewAngleOutput = strafeAnglePid->step(gyroRotation.convert(radian));
+    double angleOutput = angleSlewRate->calculate(preSlewAngleOutput);
+    std::cout << "Angle Pre-slew: " << preSlewAngleOutput << " | Slewed: " << angleOutput << std::endl;
 
     // std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
 
