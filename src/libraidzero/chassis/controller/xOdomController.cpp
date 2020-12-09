@@ -59,7 +59,9 @@ XOdomController::~XOdomController() {
     dtorCalled.store(true, std::memory_order_release);
 }
 
-void XOdomController::driveForDistance(QLength idistance, int itimeout) {
+void XOdomController::driveForDistance(QLength idistance, int itimeout, 
+    std::vector<AsyncAction> iactions) 
+{
     parseTimeout(itimeout);
 
     distancePid->reset();
@@ -82,10 +84,22 @@ void XOdomController::driveForDistance(QLength idistance, int itimeout) {
     double distanceElapsed = 0.0;
     double angleChange = 0.0;
 
-    makeSettlableLoop(isDistanceSettled, {
+    const auto currentPose = Pose2d::fromOdomState(getState());
+    const Translation2d targetTranslation = currentPose.translation() + 
+        Translation2d{
+            idistance * currentPose.rotation().cos(), 
+            idistance * currentPose.rotation().sin()
+        };
+    double distanceError = 0.0;
+
+    makeSettlableLoop(isDistanceSettled, itimeout, iactions, distanceError, {
         encVals = model->getSensorVals() - encStartVals;
         distanceElapsed = static_cast<double>((encVals[0] + encVals[1])) / 2.0;
         angleChange = static_cast<double>(encVals[0] - encVals[1]); // left - right
+
+        distanceError = targetTranslation.distance(
+            Pose2d::fromOdomState(getState()).translation()).abs().convert(meter);
+        std::cout << "moveDistance error: " << distanceError << " m" << std::endl;
 
         distancePid->step(distanceElapsed);
         anglePid->step(angleChange);
@@ -94,7 +108,9 @@ void XOdomController::driveForDistance(QLength idistance, int itimeout) {
     stopAfterSettled();
 }
 
-void XOdomController::driveToPoint(const Point& ipoint, bool ibackwards, int itimeout) {
+void XOdomController::driveToPoint(const Point& ipoint, bool ibackwards, 
+    int itimeout, std::vector<AsyncAction> iactions) 
+{
     waitForOdomTask();
 
     auto pair = OdomMath::computeDistanceAndAngleToPoint(
@@ -126,7 +142,9 @@ void XOdomController::driveToPoint(const Point& ipoint, bool ibackwards, int iti
     }
 }
 
-void XOdomController::turnAngle(QAngle iangle, TurnType iturnType, int itimeout) {
+void XOdomController::turnAngle(QAngle iangle, TurnType iturnType, int itimeout, 
+    std::vector<AsyncAction> iactions) 
+{
     parseTimeout(itimeout);
 
     LOG_INFO("XOdomController: turning " + std::to_string(iangle.convert(degree)) +
@@ -150,9 +168,15 @@ void XOdomController::turnAngle(QAngle iangle, TurnType iturnType, int itimeout)
     std::valarray<std::int32_t> encVals;
     double angleChange = 0.0;
 
-    makeSettlableLoop(isAngleSettled, {
+    const QAngle targetAngle = Pose2d::fromOdomState(getState()).rotation().angle() + iangle;
+    double angleError = 0.0;
+
+    makeSettlableLoop(isAngleSettled, itimeout, iactions, angleError, {
         encVals = model->getSensorVals() - encStartVals;
         angleChange = (encVals[1] - encVals[0]) / 2.0; // right - left
+
+        angleError = (targetAngle - Pose2d::fromOdomState(getState()).rotation().angle())
+            .abs().convert(radian);
 
         turnPid->step(angleChange);
 
@@ -171,7 +195,9 @@ void XOdomController::turnAngle(QAngle iangle, TurnType iturnType, int itimeout)
     stopAfterSettled();
 }
 
-void XOdomController::turnToAngle(QAngle iangle, TurnType iturnType, int itimeout) {
+void XOdomController::turnToAngle(QAngle iangle, TurnType iturnType, int itimeout, 
+    std::vector<AsyncAction> iactions)
+{
     waitForOdomTask();
 
     const auto angle = iangle - odometry->getState(StateMode::FRAME_TRANSFORMATION).theta;
@@ -186,7 +212,9 @@ void XOdomController::turnToAngle(QAngle iangle, TurnType iturnType, int itimeou
     }
 }
 
-void XOdomController::turnToPoint(const Point& ipoint, int itimeout) {
+void XOdomController::turnToPoint(const Point& ipoint, int itimeout, 
+    std::vector<AsyncAction> iactions) 
+{
     waitForOdomTask();
 
     const auto angle = -OdomMath::computeAngleToPoint(ipoint.inFT(StateMode::CARTESIAN),
@@ -202,7 +230,9 @@ void XOdomController::turnToPoint(const Point& ipoint, int itimeout) {
     }
 }
 
-void XOdomController::strafeToPoint(const Point& ipoint, int itimeout) {
+void XOdomController::strafeToPoint(const Point& ipoint, int itimeout, 
+    std::vector<AsyncAction> iactions) 
+{
     strafeToPose(
         Pose2d{
             Translation2d{ipoint.x, ipoint.y}, 
@@ -212,7 +242,9 @@ void XOdomController::strafeToPoint(const Point& ipoint, int itimeout) {
     );
 }
 
-void XOdomController::updateStrafeToPose(const Translation2d& targetTranslation) {
+void XOdomController::updateStrafeToPose(
+    const Translation2d& itargetTranslation, double& idistanceError
+) {
     // Use cartesian to flip x & y axes since odom works in a
     // different frame
     Pose2d currentPose = Pose2d::fromOdomState(getState());
@@ -221,10 +253,13 @@ void XOdomController::updateStrafeToPose(const Translation2d& targetTranslation)
     LOG_INFO(message);
 
     // Find the direction the drive should move towards in global coordinates
-    auto directionVector = targetTranslation - currentPose.translation();
+    auto directionVector = itargetTranslation - currentPose.translation();
 
     // Use the same vector to find the distance to the target
     double distance = directionVector.norm().convert(meter);
+
+    // Write the absolute distance error
+    idistanceError = std::abs(distance);
 
     // Should always be negated since setpoint is always 0, and distance
     // is always positive. The direction vector only needs the magnitude.
@@ -255,7 +290,9 @@ void XOdomController::updateStrafeToPose(const Translation2d& targetTranslation)
     );
 }
 
-void XOdomController::strafeToPose(const Pose2d& ipose, int itimeout) {
+void XOdomController::strafeToPose(const Pose2d& ipose, int itimeout, 
+    std::vector<AsyncAction> iactions) 
+{
     waitForOdomTask();
 
     parseTimeout(itimeout);
@@ -273,8 +310,9 @@ void XOdomController::strafeToPose(const Pose2d& ipose, int itimeout) {
     turnPid->flipDisable(true);
 
     auto targetTranslation = ipose.translation();
-    makeSettlableLoop(isStrafeSettled, {
-        updateStrafeToPose(targetTranslation);
+    double distanceError = 0.0;
+    makeSettlableLoop(isStrafeSettled, itimeout, iactions, distanceError, {
+        updateStrafeToPose(targetTranslation, distanceError);
     });
     stopAfterSettled();
 }

@@ -117,17 +117,6 @@ void GUI::setData(const OdomDebug::state_t& state,
     }
 }
 
-void GUI::loop() {
-    using namespace okapi::literals;
-
-    QAngle angle = 0_deg;
-    while (true) {
-        setData({0_in, 0_in, angle}, {0, 0, 0});
-        angle += 5_deg;
-        pros::delay(50);
-    }
-}
-
 lv_res_t GUI::openOdomAction(lv_obj_t* button) {
     GUI* that = static_cast<GUI*>(lv_obj_get_free_ptr(button));
     that->initOdom();
@@ -143,8 +132,6 @@ lv_res_t GUI::selectRightAutonAction(lv_obj_t* buttonMatrix, const char* text) {
     } else {
         that->selectedAuton = cppStr;
         lv_label_set_text(that->selectedAutonLabel, ("Selected " + cppStr).c_str());
-    }
-    
-    
+    }    
     return LV_RES_OK;
 }

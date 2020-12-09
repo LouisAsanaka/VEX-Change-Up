@@ -10,16 +10,18 @@
 
 #include "okapi/api.hpp"
 
-#define makeSettlableLoop(settleFunction, loopedBody)           \
-    uint32_t now = pros::millis();                              \
-    bool timeLeft = (pros::millis() - now < itimeout);          \
+#define makeSettlableLoop(settleFunction, itimeout, iactions, iunitsError, loopedBody) \
+    uint32_t start = pros::millis();                            \
+    uint32_t timeElapsed = pros::millis() - start;              \
+    bool timeLeft = (timeElapsed < itimeout);                   \
     bool settled = settleFunction();                            \
     auto rate = timeUtil.getRate();                             \
     while (!settled && timeLeft && task->notifyTake(0) == 0U) { \
         loopedBody                                              \
-                                                                \
+        timeElapsed = pros::millis() - start;                   \
+        executeActions(iunitsError, timeElapsed, iactions);     \
         settled = settleFunction();                             \
-        timeLeft = (pros::millis() - now < itimeout);           \
+        timeLeft = (timeElapsed < itimeout);                    \
         rate->delayUntil(10_ms);                                \
     }
 
@@ -83,7 +85,8 @@ public:
      * @param idistance The distance to drive for
      * @param itimeout The timeout for the movement
      */
-    void driveForDistance(QLength idistance, int itimeout = 0);
+    void driveForDistance(QLength idistance, int itimeout = 0, 
+        std::vector<AsyncAction> iactions = {});
 
     /**
      * Drives the robot straight to a point in the odom frame.
@@ -92,7 +95,8 @@ public:
      * @param ibackwards Whether to drive to the target point backwards
      * @param itimeout The timeout for the movement
      */
-    void driveToPoint(const Point& ipoint, bool ibackwards = false, int itimeout = 0);
+    void driveToPoint(const Point& ipoint, bool ibackwards = false, int itimeout = 0, 
+        std::vector<AsyncAction> iactions = {});
 
     /**
      * Turn the robot for the specified angle and wait until the robot
@@ -102,7 +106,8 @@ public:
      * @param iturnType The type of turn to make
      * @param itimeout The timeout for the movement
      */
-    void turnAngle(QAngle iangle, TurnType iturnType = TurnType::PointTurn, int itimeout = 0);
+    void turnAngle(QAngle iangle, TurnType iturnType = TurnType::PointTurn, int itimeout = 0, 
+        std::vector<AsyncAction> iactions = {});
 
     /**
      * Turns the robot to the specified angle in the odom frame.
@@ -111,7 +116,8 @@ public:
      * @param iturnType The type of turn to make
      * @param itimeout The timeout for the movement
      */
-    void turnToAngle(QAngle iangle, TurnType iturnType = TurnType::PointTurn, int itimeout = 0);
+    void turnToAngle(QAngle iangle, TurnType iturnType = TurnType::PointTurn, int itimeout = 0, 
+        std::vector<AsyncAction> iactions = {});
 
     /**
      * Turns the robot to face a point in the odom frame.
@@ -119,7 +125,8 @@ public:
      * @param ipoint The target point to turn towards
      * @param itimeout The timeout for the movement
      */
-    void turnToPoint(const Point& ipoint, int itimeout = 0);
+    void turnToPoint(const Point& ipoint, int itimeout = 0, 
+        std::vector<AsyncAction> iactions = {});
 
     /**
      * Makes the robot strafe from the current pose to the target point, while
@@ -127,14 +134,16 @@ public:
      *
      * @param ipoint The target point
      */
-    void strafeToPoint(const Point& ipoint, int itimeout = 0);
+    void strafeToPoint(const Point& ipoint, int itimeout = 0,
+        std::vector<AsyncAction> iactions = {});
 
     /**
      * Makes the robot strafe from the current pose to the target one.
      *
      * @param ipose The target pose
      */
-    void strafeToPose(const Pose2d& ipose, int itimeout = 0);
+    void strafeToPose(const Pose2d& ipose, int itimeout = 0,
+        std::vector<AsyncAction> iactions = {});
 
     /**
      * Executes the actions depending on their conditions.
@@ -223,9 +232,10 @@ protected:
     /**
      * Does one iteration of strafing to the target translation.
      * 
-     * @param targetTranslation the translation to strafe to
+     * @param itargetTranslation the translation to strafe to
+     * @param idistanceError the absolute distance error to write to
      */
-    void updateStrafeToPose(const Translation2d& targetTranslation);
+    void updateStrafeToPose(const Translation2d& itargetTranslation, double& idistanceError);
     
     /**
      * Returns whether the drive has settled in distance mode.

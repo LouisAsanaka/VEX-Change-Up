@@ -23,8 +23,6 @@ public:
 
     void setData(const OdomDebug::state_t& state, 
         const OdomDebug::sensors_t& sensors);
-    
-    void loop();
 
 private:
     GUI();

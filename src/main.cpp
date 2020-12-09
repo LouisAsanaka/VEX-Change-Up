@@ -13,6 +13,7 @@ void initialize() {
         )
     );
     GUI::getInstance().initMenu();
+
     #if defined(RUN_WITHOUT_ROBOT) && RUN_WITHOUT_ROBOT
     #else
     robot::init();
