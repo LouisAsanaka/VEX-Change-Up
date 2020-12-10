@@ -28,14 +28,8 @@ void autonomous() {
         rightSide3(true);
     } else {
         reset(0_in, 0_in, 0_deg, false);
-        robot::drive->controller->strafeToPose({-0.4_m, 0.4_m, 0_deg}, 4000);
-        robot::drive->controller->strafeToPose({0.0_m, 0.0_m, 0_deg}, 4000);
-        // pros::delay(500);
-        // robot::drive->controller->strafeToPose({0_in, 0_in, 0_deg});
+        robot::drive->controller->strafeToPose({0.314_m, 0.0_m, 0_deg}, 4000);
         std::cout << Pose2d::fromOdomState(robot::drive->controller->getState()).toString() << std::endl;
-        // robot::drive->controller->strafeToPose({16_in, 16_in, 90_deg});
-        // pros::delay(1000);
-        // robot::drive->controller->strafeToPose({0_in, 16_in, -45_deg});
     }
 
     std::stringstream ss;

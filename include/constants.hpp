@@ -31,7 +31,7 @@ constexpr double STRAFING_DIST_TARGET_ERROR       = 0.015;
 constexpr double STRAFING_DIST_TARGET_DERIV       = 5;
 constexpr okapi::QTime STRAFING_DIST_TARGET_TIME  = 150_ms;
 
-constexpr double STRAFING_ANGLE_TARGET_ERROR      = 0.05;
+constexpr double STRAFING_ANGLE_TARGET_ERROR      = 2;
 constexpr double STRAFING_ANGLE_TARGET_DERIV      = 5;
 constexpr okapi::QTime STRAFING_ANGLE_TARGET_TIME = 150_ms;
 
@@ -51,18 +51,17 @@ constexpr double TURN_KP = 0.0045;
 constexpr double TURN_KI = 0.001;
 constexpr double TURN_KD = 0.00009;
 
-constexpr double STRAFE_DISTANCE_KP = 6;
+constexpr double STRAFE_DISTANCE_KP = 5;
 constexpr double STRAFE_DISTANCE_KI = 0.0;
-constexpr double STRAFE_DISTANCE_KD = 0.005;
+constexpr double STRAFE_DISTANCE_KD = 0.003;
 constexpr planner::TrapezoidProfile::Constraints
-    STRAFE_DISTANCE_CONTSTRAINTS {1.1, 1.2}; // m/s, m/s^2
+    STRAFE_DISTANCE_CONTSTRAINTS {1.0, 1.0}; // m/s, m/s^2
 
-constexpr double STRAFE_ANGLE_KP = 1.0;
+constexpr double STRAFE_ANGLE_KP = 0.03;
 constexpr double STRAFE_ANGLE_KI = 0.0;
 constexpr double STRAFE_ANGLE_KD = 0.001;
-
-constexpr double ANGLE_SLEW_INCREASE_RATE = 1; // units / s
-constexpr double ANGLE_SLEW_DECREASE_RATE = 6; // units / s
+constexpr planner::TrapezoidProfile::Constraints
+    STRAFE_ANGLE_CONTSTRAINTS {210, 210}; // deg/s, deg/s^2
 
 // Controller
 constexpr double CONTROLLER_DEADBAND = 0.1;

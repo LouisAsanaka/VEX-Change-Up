@@ -23,8 +23,7 @@ XOdomController::XOdomController(
     std::unique_ptr<IterativePosPIDController> ianglePid,
     std::unique_ptr<IterativePosPIDController> iturnPid,
     std::unique_ptr<ProfiledPIDController> istrafeDistancePid,
-    std::unique_ptr<IterativePosPIDController> istrafeAnglePid,
-    std::unique_ptr<SlewRateLimiter> iangleSlewRate,
+    std::unique_ptr<ProfiledPIDController> istrafeAnglePid,
     const AbstractMotor::GearsetRatioPair& igearset,
     const ChassisScales& iscales,
     QLength idistanceThreshold,
@@ -38,7 +37,6 @@ XOdomController::XOdomController(
     turnPid{std::move(iturnPid)},
     strafeDistancePid{std::move(istrafeDistancePid)},
     strafeAnglePid{std::move(istrafeAnglePid)},
-    angleSlewRate{std::move(iangleSlewRate)},
     gearsetRatioPair{igearset},
     scales{iscales},
     distanceThreshold{idistanceThreshold},
@@ -132,13 +130,13 @@ void XOdomController::driveToPoint(const Point& ipoint, bool ibackwards,
     if (angle.abs() > turnThreshold) {
         LOG_INFO("XOdomController: Turning " + std::to_string(angle.convert(degree)) +
                  " degrees");
-        turnAngle(angle, TurnType::PointTurn, itimeout, iactions);
+        turnAngle(angle, TurnType::PointTurn, itimeout, std::move(iactions));
     }
 
     if (length.abs() > distanceThreshold) {
         LOG_INFO("XOdomController: Driving " +
              std::to_string((length).convert(meter)) + " meters");
-        driveForDistance(length, itimeout, iactions);
+        driveForDistance(length, itimeout, std::move(iactions));
     }
 }
 
@@ -209,7 +207,7 @@ void XOdomController::turnToAngle(QAngle iangle, TurnType iturnType, int itimeou
     if (angle.abs() > turnThreshold) {
         LOG_INFO("XOdomController: Turning " + std::to_string(angle.convert(degree)) +
                  " degrees");
-        turnAngle(angle, iturnType, itimeout, iactions);
+        turnAngle(angle, iturnType, itimeout, std::move(iactions));
     }
 }
 
@@ -227,7 +225,7 @@ void XOdomController::turnToPoint(const Point& ipoint, int itimeout,
     if (angle.abs() > turnThreshold) {
         LOG_INFO("XOdomController: Turning " + std::to_string(angle.convert(degree)) +
                  " degrees");
-        turnAngle(angle, TurnType::PointTurn, itimeout, iactions);
+        turnAngle(angle, TurnType::PointTurn, itimeout, std::move(iactions));
     }
 }
 
@@ -240,7 +238,7 @@ void XOdomController::strafeToPoint(const Point& ipoint, int itimeout,
             Rotation2d{-getState().theta}
         }, 
         itimeout,
-        iactions
+        std::move(iactions)
     );
 }
 
@@ -277,9 +275,8 @@ void XOdomController::updateStrafeToPose(
     directionVector *= distanceOutput;
     directionVector = directionVector.rotateBy(Rotation2d{-gyroRotation});
 
-    double preSlewAngleOutput = strafeAnglePid->step(gyroRotation.convert(radian));
-    double angleOutput = angleSlewRate->calculate(preSlewAngleOutput);
-    //std::cout << "Angle Pre-slew: " << preSlewAngleOutput << " | Slewed: " << angleOutput << std::endl;
+    double angleOutput = strafeAnglePid->step(gyroRotation.convert(degree));
+    std::cout << "Angle Output: " << angleOutput << std::endl;
 
     // std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
 
@@ -300,17 +297,18 @@ void XOdomController::strafeToPose(const Pose2d& ipose, int itimeout,
 
     LOG_INFO("XOdomController: strafing to " + ipose.toString());
 
+    auto currentPose = Pose2d::fromOdomState(getState());
     strafeDistancePid->reset(
-        Pose2d::fromOdomState(getState()).translation().distance(
+        currentPose.translation().distance(
             ipose.translation()
         ).convert(meter), 
         0.0
     );
     strafeDistancePid->flipDisable(false);
     strafeDistancePid->setGoal(0.0);
-    strafeAnglePid->reset();
+    strafeAnglePid->reset(currentPose.angle().convert(degree));
     strafeAnglePid->flipDisable(false);
-    strafeAnglePid->setTarget(ipose.angle().convert(radian));
+    strafeAnglePid->setGoal(ipose.angle().convert(degree));
     distancePid->flipDisable(true);
     anglePid->flipDisable(true);
     turnPid->flipDisable(true);
@@ -401,7 +399,7 @@ bool XOdomController::isAngleSettled() {
 }
 
 bool XOdomController::isStrafeSettled() {
-    return strafeDistancePid->atGoal() && strafeAnglePid->isSettled();
+    return strafeDistancePid->atGoal() && strafeAnglePid->atGoal();
 }
 
 void XOdomController::stopAfterSettled() {

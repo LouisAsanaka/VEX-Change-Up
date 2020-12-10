@@ -51,8 +51,8 @@ public:
      * @param iturnPid The PID controller that controls chassis angle for turning.
      * @param istrafeDistancePid The trapezoid-profiled PID controller that controls 
                                  chassis distance while strafing.
-     * @param istrafeAnglePid The PID controller that controls chassis angle while strafing.
-     * @param iangleSlewRate The slew rate limiter for angle.
+     * @param istrafeAnglePid The trapezoid-profiled PID controller that controls 
+                                 chassis angle while strafing.
      * @param igearset The internal gearset and external ratio used on the drive motors.
      * @param iscales The ChassisScales.
      * @param idistanceThreshold minimum length movement (smaller movements will be skipped)
@@ -67,8 +67,7 @@ public:
         std::unique_ptr<IterativePosPIDController> ianglePid,
         std::unique_ptr<IterativePosPIDController> iturnPid,
         std::unique_ptr<ProfiledPIDController> istrafeDistancePid,
-        std::unique_ptr<IterativePosPIDController> istrafeAnglePid,
-        std::unique_ptr<SlewRateLimiter> iangleSlewRate,
+        std::unique_ptr<ProfiledPIDController> istrafeAnglePid,
         const AbstractMotor::GearsetRatioPair& igearset,
         const ChassisScales& iscales,
         QLength idistanceThreshold = 0_mm,
@@ -217,8 +216,7 @@ protected:
     std::unique_ptr<IterativePosPIDController> anglePid {nullptr};
     std::unique_ptr<IterativePosPIDController> turnPid {nullptr};
     std::unique_ptr<ProfiledPIDController> strafeDistancePid {nullptr};
-    std::unique_ptr<IterativePosPIDController> strafeAnglePid {nullptr};
-    std::unique_ptr<SlewRateLimiter> angleSlewRate {nullptr};
+    std::unique_ptr<ProfiledPIDController> strafeAnglePid {nullptr};
 
     AbstractMotor::GearsetRatioPair gearsetRatioPair;
     ChassisScales scales;
