@@ -27,8 +27,24 @@ void autonomous() {
     } else if (selectedAuton == "Right 3") {
         rightSide3(true);
     } else {
-        reset(0_in, 0_in, 0_deg, false);
-        robot::drive->controller->strafeToPose({0.314_m, 0.0_m, 0_deg}, 4000);
+        reset(0_m, 0_m, 0_deg, false);
+        std::shared_ptr<PurePursuitPath> path = std::make_shared<PurePursuitPath>(
+            std::vector<Pose2d>{
+                {0.6_m, 0_m, 0_deg},
+                {1_m, 1_m, 0_deg}
+            }, 0.02_m,
+            PurePursuitPath::Constraints{0.6, 1.0, 2.0}
+        );
+        double b = 0.98;
+        double a = 1 - b;
+        double tol = 0.001;
+        path->smoothen(a, b, tol);
+        path->fillPointInformation();
+
+        for (const auto& point : path->points) {
+            std::cout << point.pose.toString() << " => " << point.distanceFromStart << "m, " << point.curvature << " curvature, " << point.targetVelocity << " m/s" << std::endl;
+        }
+        robot::drive->controller->followPath(path, 0.3_m, 0.01_m, {0.01, 1.0, 15.0});
         std::cout << Pose2d::fromOdomState(robot::drive->controller->getState()).toString() << std::endl;
     }
 

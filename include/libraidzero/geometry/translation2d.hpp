@@ -161,6 +161,17 @@ public:
      * @return The reference to the new mutated object.
      */
     Translation2d& operator*=(double scalar);
+
+    /**
+     * Dots the translation by another translation and returns the dot product.
+     *
+     * For example, Translation2d{2.0, 2.5} * Translation2d{4.0, 5.0} = 20.5
+     *
+     * @param other The translation to dot by.
+     *
+     * @return The dot product.
+     */
+    okapi::QLength operator*(const Translation2d& other) const;
   
     /**
      * Divides the translation by a scalar and returns the new translation.

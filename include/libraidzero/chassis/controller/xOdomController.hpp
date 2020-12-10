@@ -4,9 +4,11 @@
 #include "libraidzero/chassis/controller/iodomController.hpp"
 #include "libraidzero/chassis/model/threeEncoderImuXDriveModel.hpp"
 #include "libraidzero/controller/profiledPidController.hpp"
+#include "libraidzero/controller/purePursuitController.hpp"
 #include "libraidzero/filter/slewRateLimiter.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/odometry/threeEncoderImuOdometry.hpp"
+#include "libraidzero/pathing/purePursuitPath.hpp"
 #include "libraidzero/util/taskWrapper.hpp"
 
 #include "okapi/api.hpp"
@@ -148,6 +150,20 @@ public:
         std::vector<AsyncAction> iactions = {});
 
     /**
+     * Makes the robot follow a path using Pure Pursuit.
+     *
+     * @param ipath The path to follow.
+     * @param ilookahead The lookahead radius.
+     * @param isettleRadius The settle radius.
+     * @param igains The velocity PID & feedforward gains.
+     */
+    void followPath(const std::shared_ptr<PurePursuitPath>& ipath, 
+        QLength ilookahead, QLength isettleRadius,
+        PurePursuitController::Gains igains, int itimeout = 0, 
+        std::vector<AsyncAction> iactions = {}
+    );
+
+    /**
      * Executes the actions depending on their conditions.
      * 
      * @param iunitsError The units error (distance / angle)
@@ -217,6 +233,9 @@ protected:
     std::unique_ptr<IterativePosPIDController> turnPid {nullptr};
     std::unique_ptr<ProfiledPIDController> strafeDistancePid {nullptr};
     std::unique_ptr<ProfiledPIDController> strafeAnglePid {nullptr};
+
+    std::unique_ptr<PurePursuitController> purePursuitController {nullptr};
+    std::unique_ptr<SlewRateLimiter> targetVelocitySlewRate {nullptr};
 
     AbstractMotor::GearsetRatioPair gearsetRatioPair;
     ChassisScales scales;

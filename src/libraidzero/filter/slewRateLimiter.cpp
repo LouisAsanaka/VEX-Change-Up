@@ -12,6 +12,11 @@ SlewRateLimiter::SlewRateLimiter(double irateIncreaseLimit, double irateDecrease
       previousTime{pros::millis()}, previousValue{iinitialValue}
 {}
 
+void SlewRateLimiter::setLimits(double irateIncreaseLimit, double irateDecreaseLimit) {
+    rateIncreaseLimit = irateIncreaseLimit;
+    rateDecreaseLimit = irateDecreaseLimit == 0 ? 10000000 : irateDecreaseLimit;
+}
+
 double SlewRateLimiter::calculate(double input) {
     std::uint32_t currentTime = pros::millis();
     double elapsedTime = (currentTime - previousTime) / 1000.0;

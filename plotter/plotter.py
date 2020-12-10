@@ -35,7 +35,6 @@ def preProcessData(incomingDatum):
     incomingDatum = incomingDatum.decode('latin1')
     incomingDatum = incomingDatum.strip('\n')
     incomingDatum = incomingDatum[6:]
-    print(incomingDatum)
 
     #In the case that we are receiving steady empty string, then no start and stop characters are found
     try:
@@ -120,6 +119,8 @@ class Run:
 
                 #unpacks and decodes serial lines
                 incomingDatum = preProcessData(self.dataStream.readline())
+                if incomingDatum[0]=="":
+                    continue
                 if(incomingDatum[0]=="STOP"):
                     printToConsole(textConsole, "Stop Command Received.")
                     time.sleep(1)
@@ -136,6 +137,7 @@ class Run:
                 except:
                     lineDropCount += 1
                     if (lineDropCount > 50):
+                        print("EXITING")
                         printToConsole(textConsole, "Too many errors. Stopping collection")
                         sys.exit()
 

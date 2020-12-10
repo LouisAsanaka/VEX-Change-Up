@@ -48,6 +48,11 @@ Translation2d& Translation2d::operator*=(double scalar) {
     return *this;
 }
 
+okapi::QLength Translation2d::operator*(const Translation2d& other) const {
+    return (m_x.convert(okapi::meter) * other.m_x.convert(okapi::meter) + 
+        m_y.convert(okapi::meter) * other.m_y.convert(okapi::meter)) * okapi::meter;
+}
+
 Translation2d Translation2d::operator/(double scalar) const {
     return *this * (1.0 / scalar);
 }

@@ -5,11 +5,15 @@
 #include "gui.hpp"
 #include "libraidzero/chassis/controller/xOdomController.hpp"
 #include "libraidzero/chassis/model/threeEncoderImuXDriveModel.hpp"
+#include "libraidzero/controller/purePursuitController.hpp"
+#include "libraidzero/filter/slewRateLimiter.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/geometry/rotation2d.hpp"
 #include "libraidzero/geometry/translation2d.hpp"
+#include "libraidzero/pathing/purePursuitPath.hpp"
 #include "libraidzero/util/mathUtil.hpp"
 #include "libraidzero/util/plotter.hpp"
+
 #include "okapi/api/odometry/odomMath.hpp"
 #include "okapi/api/odometry/stateMode.hpp"
 #include "okapi/api/units/QAngle.hpp"
@@ -37,6 +41,8 @@ XOdomController::XOdomController(
     turnPid{std::move(iturnPid)},
     strafeDistancePid{std::move(istrafeDistancePid)},
     strafeAnglePid{std::move(istrafeAnglePid)},
+    purePursuitController{std::make_unique<PurePursuitController>()},
+    targetVelocitySlewRate{std::make_unique<SlewRateLimiter>(0.0, 0.0, 0.0)},
     gearsetRatioPair{igearset},
     scales{iscales},
     distanceThreshold{idistanceThreshold},
@@ -130,7 +136,7 @@ void XOdomController::driveToPoint(const Point& ipoint, bool ibackwards,
     if (angle.abs() > turnThreshold) {
         LOG_INFO("XOdomController: Turning " + std::to_string(angle.convert(degree)) +
                  " degrees");
-        turnAngle(angle, TurnType::PointTurn, itimeout, std::move(iactions));
+        turnAngle(angle, TurnType::PointTurn, itimeout, iactions);
     }
 
     if (length.abs() > distanceThreshold) {
@@ -318,6 +324,95 @@ void XOdomController::strafeToPose(const Pose2d& ipose, int itimeout,
     makeSettlableLoop(isStrafeSettled, itimeout, iactions, distanceError, {
         updateStrafeToPose(targetTranslation, distanceError);
     });
+    stopAfterSettled();
+}
+
+void XOdomController::followPath(const std::shared_ptr<PurePursuitPath>& ipath, 
+    QLength ilookahead, QLength isettleRadius, PurePursuitController::Gains igains, int itimeout, 
+    std::vector<AsyncAction> iactions
+) {
+    waitForOdomTask();
+
+    parseTimeout(itimeout);
+
+    LOG_INFO_S("XOdomController: following path");
+
+    distancePid->flipDisable(true);
+    anglePid->flipDisable(true);
+    turnPid->flipDisable(true);
+    strafeDistancePid->flipDisable(true);
+    strafeAnglePid->flipDisable(true);
+
+    purePursuitController->setPath(ipath, ilookahead);
+    targetVelocitySlewRate->reset(0.0);
+    targetVelocitySlewRate->setLimits(ipath->constraints.maxAcceleration);
+
+    Pose2d currentPose = Pose2d::fromOdomState(getState());
+    Translation2d currentPosition = currentPose.translation();
+    Translation2d previousPosition = currentPosition;
+    double currentVelocity = 0.0;
+    double targetVelocity = 0.0;
+    double previousTargetVelocity = 0.0;
+    double targetAcceleration = 0.0;
+    double output = 0.0;
+    PurePursuitPath::Point lookaheadPoint = {};
+
+    double distanceError = currentPosition.distance(
+        ipath->getLastPoint().pose.translation()
+    ).convert(meter);
+
+    auto isFollowingSettled = [&]() -> bool {
+        std::cout << "Current error: " << distanceError << " m" << std::endl;
+        return distanceError <= isettleRadius.convert(meter);
+    };
+
+    plotterStart();
+    auto startTime = pros::millis();
+    makeSettlableLoop(isFollowingSettled, itimeout, iactions, distanceError, {
+        currentPose = Pose2d::fromOdomState(getState());
+        currentPosition = currentPose.translation();
+        currentVelocity = currentPosition.distance(previousPosition).convert(meter) / (10_ms).convert(second);
+        lookaheadPoint = purePursuitController->calculate(currentPose);
+        targetVelocity = targetVelocitySlewRate->calculate(lookaheadPoint.targetVelocity);
+
+        targetAcceleration = targetVelocity - previousTargetVelocity;
+
+        plotterPlot({(pros::millis() - startTime) / 1000.0, targetVelocity, currentVelocity});
+
+        // PID w/ FF
+        output = igains.kP * (targetVelocity - currentVelocity) 
+            + igains.kV * targetVelocity + igains.kA * targetAcceleration;
+
+        std::cout << "Target Vel: " << targetVelocity << " m/s | Current Vel: " << currentVelocity << " m/s | Target Acceleration: " << targetAcceleration << std::endl;
+
+        // Find the direction the drive should move towards in global coordinates
+        auto directionVector = lookaheadPoint.pose.translation() - currentPosition;
+
+        // Use the same vector to find the distance to the target
+        double distance = directionVector.norm().convert(meter);
+
+        // QAngle gyroRotation = -currentPose.angle();
+        QAngle gyroRotation = -model->getHeading() * degree;
+
+        // Normalize the vector & scale it by the PID output
+        directionVector /= distance;
+        directionVector *= std::clamp(output, -1.0, 1.0);
+        directionVector = directionVector.rotateBy(Rotation2d{-gyroRotation});
+
+        model->xArcade(
+            directionVector.x().convert(meter),
+            directionVector.y().convert(meter), 
+            0.0
+        );
+
+        distanceError = currentPosition.distance(
+            ipath->getLastPoint().pose.translation()
+        ).convert(meter);
+
+        previousPosition = currentPosition;
+        previousTargetVelocity = targetVelocity;
+    });
+    plotterStop();
     stopAfterSettled();
 }
 

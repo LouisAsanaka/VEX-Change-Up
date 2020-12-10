@@ -12,6 +12,7 @@ public:
      * @param iinitialValue starting value in units
      */
     SlewRateLimiter(double irateIncreaseLimit, double irateDecreaseLimit = 0.0, double iinitialValue = 0.0);
+    void setLimits(double irateIncreaseLimit, double irateDecreaseLimit = 0.0);
     double calculate(double input);
     void reset(double value);
 private:
