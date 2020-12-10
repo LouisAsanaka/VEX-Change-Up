@@ -14,7 +14,7 @@ namespace planner {
             double maxVelocity;
             double maxAcceleration;
 
-            Constraints(double maxVelocity, double maxAcceleration) : 
+            constexpr Constraints(double maxVelocity, double maxAcceleration) : 
                 maxVelocity{maxVelocity}, maxAcceleration{maxAcceleration} {}
         };
 
@@ -22,7 +22,7 @@ namespace planner {
             double position;
             double velocity;
 
-            State(double position = 0.0, double velocity = 0.0) : 
+            constexpr State(double position = 0.0, double velocity = 0.0) : 
                 position{position}, velocity{velocity} {}
 
             bool operator==(const State& rhs) const {

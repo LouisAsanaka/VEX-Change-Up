@@ -13,7 +13,7 @@ public:
     using State = planner::TrapezoidProfile::State;
 
     ProfiledPIDController(const Gains& igains, const TimeUtil &itimeUtil, 
-        const Constraints& iconstrains, QTime isampleTime = 10_ms);
+        const Constraints& iconstraints, QTime isampleTime = 10_ms);
 
     void setGains(const Gains& igains);
     void setGoal(const State& igoal);
@@ -31,9 +31,15 @@ public:
 
     void reset(const State& istate);
     void reset(double iposition, double ivelocity = 0.0);
+
+    void flipDisable();
+    void flipDisable(bool iisDisabled);
+    bool isDisabled() const;
 private:
     std::unique_ptr<IterativePosPIDController> pidController;
     State goal;
     State setpoint;
     Constraints constraints;
+
+    bool controllerIsDisabled {false};
 };

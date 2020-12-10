@@ -3,6 +3,7 @@
 #include "libraidzero/action/asyncAction.hpp"
 #include "libraidzero/chassis/controller/iodomController.hpp"
 #include "libraidzero/chassis/model/threeEncoderImuXDriveModel.hpp"
+#include "libraidzero/controller/profiledPidController.hpp"
 #include "libraidzero/filter/slewRateLimiter.hpp"
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/odometry/threeEncoderImuOdometry.hpp"
@@ -48,9 +49,9 @@ public:
      * straight.
      * @param ianglePid The PID controller that controls chassis angle for driving straight.
      * @param iturnPid The PID controller that controls chassis angle for turning.
-     * @param istrafeDistancePid The PID controller that controls chassis distance while strafing.
+     * @param istrafeDistancePid The trapezoid-profiled PID controller that controls 
+                                 chassis distance while strafing.
      * @param istrafeAnglePid The PID controller that controls chassis angle while strafing.
-     * @param idistanceSlewRate The slew rate limiter for distance.
      * @param iangleSlewRate The slew rate limiter for angle.
      * @param igearset The internal gearset and external ratio used on the drive motors.
      * @param iscales The ChassisScales.
@@ -65,9 +66,8 @@ public:
         std::unique_ptr<IterativePosPIDController> idistancePid,
         std::unique_ptr<IterativePosPIDController> ianglePid,
         std::unique_ptr<IterativePosPIDController> iturnPid,
-        std::unique_ptr<IterativePosPIDController> istrafeDistancePid,
+        std::unique_ptr<ProfiledPIDController> istrafeDistancePid,
         std::unique_ptr<IterativePosPIDController> istrafeAnglePid,
-        std::unique_ptr<SlewRateLimiter> idistanceSlewRate,
         std::unique_ptr<SlewRateLimiter> iangleSlewRate,
         const AbstractMotor::GearsetRatioPair& igearset,
         const ChassisScales& iscales,
@@ -216,9 +216,8 @@ protected:
     std::unique_ptr<IterativePosPIDController> distancePid {nullptr};
     std::unique_ptr<IterativePosPIDController> anglePid {nullptr};
     std::unique_ptr<IterativePosPIDController> turnPid {nullptr};
-    std::unique_ptr<IterativePosPIDController> strafeDistancePid {nullptr};
+    std::unique_ptr<ProfiledPIDController> strafeDistancePid {nullptr};
     std::unique_ptr<IterativePosPIDController> strafeAnglePid {nullptr};
-    std::unique_ptr<SlewRateLimiter> distanceSlewRate {nullptr};
     std::unique_ptr<SlewRateLimiter> angleSlewRate {nullptr};
 
     AbstractMotor::GearsetRatioPair gearsetRatioPair;

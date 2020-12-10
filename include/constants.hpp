@@ -1,6 +1,7 @@
 #pragma once
 
 // Robot dimensions
+#include "libraidzero/planner/trapezoidProfile.hpp"
 #include "okapi/api/units/QAngle.hpp"
 #include "okapi/api/units/QLength.hpp"
 #include "okapi/api/units/QTime.hpp"
@@ -26,7 +27,7 @@ constexpr double DRIVE_ENCODER_TARGET_ERROR       = 40;
 constexpr double DRIVE_ENCODER_TARGET_DERIV       = 5;
 constexpr okapi::QTime DRIVE_ENCODER_TARGET_TIME  = 200_ms;
 
-constexpr double STRAFING_DIST_TARGET_ERROR       = 0.02;
+constexpr double STRAFING_DIST_TARGET_ERROR       = 0.015;
 constexpr double STRAFING_DIST_TARGET_DERIV       = 5;
 constexpr okapi::QTime STRAFING_DIST_TARGET_TIME  = 150_ms;
 
@@ -50,16 +51,16 @@ constexpr double TURN_KP = 0.0045;
 constexpr double TURN_KI = 0.001;
 constexpr double TURN_KD = 0.00009;
 
-constexpr double STRAFE_DISTANCE_KP = 2.1;
+constexpr double STRAFE_DISTANCE_KP = 6;
 constexpr double STRAFE_DISTANCE_KI = 0.0;
-constexpr double STRAFE_DISTANCE_KD = 0.003;
+constexpr double STRAFE_DISTANCE_KD = 0.005;
+constexpr planner::TrapezoidProfile::Constraints
+    STRAFE_DISTANCE_CONTSTRAINTS {1.1, 1.2}; // m/s, m/s^2
 
 constexpr double STRAFE_ANGLE_KP = 1.0;
 constexpr double STRAFE_ANGLE_KI = 0.0;
 constexpr double STRAFE_ANGLE_KD = 0.001;
 
-constexpr double DISTANCE_SLEW_INCREASE_RATE = 1.1; // units / s
-constexpr double DISTANCE_SLEW_DECREASE_RATE = 0; // units / s
 constexpr double ANGLE_SLEW_INCREASE_RATE = 1; // units / s
 constexpr double ANGLE_SLEW_DECREASE_RATE = 6; // units / s
 

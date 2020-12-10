@@ -22,9 +22,8 @@ XOdomController::XOdomController(
     std::unique_ptr<IterativePosPIDController> idistancePid,
     std::unique_ptr<IterativePosPIDController> ianglePid,
     std::unique_ptr<IterativePosPIDController> iturnPid,
-    std::unique_ptr<IterativePosPIDController> istrafeDistancePid,
+    std::unique_ptr<ProfiledPIDController> istrafeDistancePid,
     std::unique_ptr<IterativePosPIDController> istrafeAnglePid,
-    std::unique_ptr<SlewRateLimiter> idistanceSlewRate,
     std::unique_ptr<SlewRateLimiter> iangleSlewRate,
     const AbstractMotor::GearsetRatioPair& igearset,
     const ChassisScales& iscales,
@@ -39,7 +38,6 @@ XOdomController::XOdomController(
     turnPid{std::move(iturnPid)},
     strafeDistancePid{std::move(istrafeDistancePid)},
     strafeAnglePid{std::move(istrafeAnglePid)},
-    distanceSlewRate{std::move(idistanceSlewRate)},
     angleSlewRate{std::move(iangleSlewRate)},
     gearsetRatioPair{igearset},
     scales{iscales},
@@ -268,9 +266,8 @@ void XOdomController::updateStrafeToPose(
 
     // Should always be negated since setpoint is always 0, and distance
     // is always positive. The direction vector only needs the magnitude.
-    double preSlewDistanceOutput = -strafeDistancePid->step(distance);
-    double distanceOutput = distanceSlewRate->calculate(preSlewDistanceOutput);
-    std::cout << "Distance Pre-slew: " << preSlewDistanceOutput << " | Slewed: " << distanceOutput << std::endl;
+    double distanceOutput = -strafeDistancePid->step(distance);
+    std::cout << "Distance Output: " << distanceOutput << std::endl;
 
     // QAngle gyroRotation = -currentPose.angle();
     QAngle gyroRotation = -model->getHeading() * degree;
@@ -282,7 +279,7 @@ void XOdomController::updateStrafeToPose(
 
     double preSlewAngleOutput = strafeAnglePid->step(gyroRotation.convert(radian));
     double angleOutput = angleSlewRate->calculate(preSlewAngleOutput);
-    std::cout << "Angle Pre-slew: " << preSlewAngleOutput << " | Slewed: " << angleOutput << std::endl;
+    //std::cout << "Angle Pre-slew: " << preSlewAngleOutput << " | Slewed: " << angleOutput << std::endl;
 
     // std::cout << "Distance PID: " << distanceOutput << " | Angle PID: " << angleOutput << std::endl;
 
@@ -303,9 +300,14 @@ void XOdomController::strafeToPose(const Pose2d& ipose, int itimeout,
 
     LOG_INFO("XOdomController: strafing to " + ipose.toString());
 
-    strafeDistancePid->reset();
+    strafeDistancePid->reset(
+        Pose2d::fromOdomState(getState()).translation().distance(
+            ipose.translation()
+        ).convert(meter), 
+        0.0
+    );
     strafeDistancePid->flipDisable(false);
-    strafeDistancePid->setTarget(0.0);
+    strafeDistancePid->setGoal(0.0);
     strafeAnglePid->reset();
     strafeAnglePid->flipDisable(false);
     strafeAnglePid->setTarget(ipose.angle().convert(radian));
@@ -399,7 +401,7 @@ bool XOdomController::isAngleSettled() {
 }
 
 bool XOdomController::isStrafeSettled() {
-    return strafeDistancePid->isSettled() && strafeAnglePid->isSettled();
+    return strafeDistancePid->atGoal() && strafeAnglePid->isSettled();
 }
 
 void XOdomController::stopAfterSettled() {

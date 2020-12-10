@@ -3,9 +3,9 @@
 
 ProfiledPIDController::ProfiledPIDController(
     const Gains& igains, const TimeUtil &itimeUtil, 
-    const Constraints& iconstrains, QTime isampleTime
+    const Constraints& iconstraints, QTime isampleTime
 ) : pidController{std::make_unique<IterativePosPIDController>(igains, itimeUtil)},
-    constraints{iconstrains}
+    constraints{iconstraints}
 {
     pidController->setSampleTime(isampleTime);
 }
@@ -39,7 +39,7 @@ ProfiledPIDController::State ProfiledPIDController::getSetpoint() const {
 }
 
 bool ProfiledPIDController::atSetpoint() const {
-    return pidController->isSettled();
+    return isDisabled() ? true : pidController->isSettled();
 }
 
 double ProfiledPIDController::getError() const {
@@ -47,6 +47,9 @@ double ProfiledPIDController::getError() const {
 }
 
 double ProfiledPIDController::step(double inewReading) {
+    if (isDisabled()) {
+        return 0.0;
+    }
     planner::TrapezoidProfile profile{constraints, goal, setpoint};
     setpoint = profile.calculate(pidController->getSampleTime().convert(second));
     pidController->setTarget(setpoint.position);
@@ -72,4 +75,16 @@ void ProfiledPIDController::reset(const State& istate) {
 
 void ProfiledPIDController::reset(double iposition, double ivelocity) {
     reset(State{iposition, ivelocity});
+}
+
+void ProfiledPIDController::flipDisable() {
+    flipDisable(!controllerIsDisabled);
+}
+
+void ProfiledPIDController::flipDisable(const bool iisDisabled) {
+    controllerIsDisabled = iisDisabled;
+}
+
+bool ProfiledPIDController::isDisabled() const {
+    return controllerIsDisabled;
 }

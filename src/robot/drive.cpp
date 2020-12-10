@@ -75,15 +75,13 @@ Drive::Drive() {
                                                     closedLoopTimeFactory.create(),
                                                     std::make_unique<PassthroughFilter>(),
                                                     controllerLogger),
-        std::make_unique<IterativePosPIDController>(STRAFE_DISTANCE_GAINS,
-                                                    strafingDistTimeFactory.create(),
-                                                    std::make_unique<PassthroughFilter>(),
-                                                    controllerLogger),
+        std::make_unique<ProfiledPIDController>(STRAFE_DISTANCE_GAINS,
+                                                strafingDistTimeFactory.create(),
+                                                STRAFE_DISTANCE_CONTSTRAINTS),
         std::make_unique<IterativePosPIDController>(STRAFE_ANGLE_GAINS,
                                                     strafingAngleTimeFactory.create(),
                                                     std::make_unique<PassthroughFilter>(),
                                                     controllerLogger),
-        std::make_unique<SlewRateLimiter>(DISTANCE_SLEW_INCREASE_RATE, DISTANCE_SLEW_DECREASE_RATE),
         std::make_unique<SlewRateLimiter>(ANGLE_SLEW_INCREASE_RATE, ANGLE_SLEW_DECREASE_RATE),
         gearing, odomScales, DISTANCE_BEFORE_MOVE, ANGLE_BEFORE_TURN, controllerLogger
     );
