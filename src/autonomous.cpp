@@ -28,7 +28,9 @@ void autonomous() {
         rightSide3(true);
     } else {
         reset(0_in, 0_in, 0_deg, false);
-        robot::drive->controller->turnAngle(90_deg);
+        robot::drive->controller->strafeToPose({0_in, 24_in, 0_deg}, 4000);
+        // pros::delay(500);
+        // robot::drive->controller->strafeToPose({0_in, 0_in, 0_deg});
         std::cout << Pose2d::fromOdomState(robot::drive->controller->getState()).toString() << std::endl;
         // robot::drive->controller->strafeToPose({16_in, 16_in, 90_deg});
         // pros::delay(1000);

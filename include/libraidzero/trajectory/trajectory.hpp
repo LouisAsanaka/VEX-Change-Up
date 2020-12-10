@@ -2,13 +2,12 @@
 
 #include "libraidzero/geometry/pose2d.hpp"
 #include "libraidzero/planner/profileStructs.hpp"
+#include "libraidzero/util/mathUtil.hpp"
 
 #include "okapi/pathfinder/include/pathfinder/structs.h"
 
 #include <vector>
 #include <memory>
-
-#define lerp(fromV, toV, iFrac) fromV + (toV - fromV) * iFrac
 
 class Trajectory {
 public:

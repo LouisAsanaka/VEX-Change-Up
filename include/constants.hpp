@@ -7,7 +7,7 @@
 
 using namespace okapi::literals;
 
-#define RUN_WITHOUT_ROBOT 1
+#define RUN_WITHOUT_ROBOT 0
 
 constexpr int OPCONTROL_DURATION = 105 * 1000;
 constexpr int TIME_TILL_15_SECONDS = OPCONTROL_DURATION - 15 * 1000;
@@ -50,16 +50,18 @@ constexpr double TURN_KP = 0.0045;
 constexpr double TURN_KI = 0.001;
 constexpr double TURN_KD = 0.00009;
 
-constexpr double STRAFE_DISTANCE_KP = 3.3;
+constexpr double STRAFE_DISTANCE_KP = 2.1;
 constexpr double STRAFE_DISTANCE_KI = 0.0;
-constexpr double STRAFE_DISTANCE_KD = 0.004;
+constexpr double STRAFE_DISTANCE_KD = 0.003;
 
-constexpr double STRAFE_ANGLE_KP = 2.1;
+constexpr double STRAFE_ANGLE_KP = 1.0;
 constexpr double STRAFE_ANGLE_KI = 0.0;
-constexpr double STRAFE_ANGLE_KD = 0.03;
+constexpr double STRAFE_ANGLE_KD = 0.001;
 
-constexpr double DISTANCE_SLEW_RATE = 1.0; // units / s
-constexpr double ANGLE_SLEW_RATE = 1.0; // units / s
+constexpr double DISTANCE_SLEW_INCREASE_RATE = 1.1; // units / s
+constexpr double DISTANCE_SLEW_DECREASE_RATE = 0; // units / s
+constexpr double ANGLE_SLEW_INCREASE_RATE = 1; // units / s
+constexpr double ANGLE_SLEW_DECREASE_RATE = 6; // units / s
 
 // Controller
 constexpr double CONTROLLER_DEADBAND = 0.1;

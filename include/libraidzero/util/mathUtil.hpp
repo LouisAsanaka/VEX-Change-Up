@@ -1,5 +1,7 @@
 #pragma once
 
+#define lerp(fromV, toV, iFrac) fromV + (toV - fromV) * iFrac
+
 /**
  * Constrains the angle to [-pi, pi) radians.
  * 

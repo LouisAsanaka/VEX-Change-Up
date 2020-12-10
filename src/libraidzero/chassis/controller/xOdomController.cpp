@@ -134,13 +134,13 @@ void XOdomController::driveToPoint(const Point& ipoint, bool ibackwards,
     if (angle.abs() > turnThreshold) {
         LOG_INFO("XOdomController: Turning " + std::to_string(angle.convert(degree)) +
                  " degrees");
-        turnAngle(angle, TurnType::PointTurn, itimeout);
+        turnAngle(angle, TurnType::PointTurn, itimeout, iactions);
     }
 
     if (length.abs() > distanceThreshold) {
         LOG_INFO("XOdomController: Driving " +
              std::to_string((length).convert(meter)) + " meters");
-        driveForDistance(length, itimeout);
+        driveForDistance(length, itimeout, iactions);
     }
 }
 
@@ -170,14 +170,14 @@ void XOdomController::turnAngle(QAngle iangle, TurnType iturnType, int itimeout,
     std::valarray<std::int32_t> encVals;
     double angleChange = 0.0;
 
-    const QAngle targetAngle = Pose2d::fromOdomState(getState()).rotation().angle() + iangle;
+    const QAngle targetAngle = Pose2d::fromOdomState(getState()).angle() + iangle;
     double angleError = 0.0;
 
     makeSettlableLoop(isAngleSettled, itimeout, iactions, angleError, {
         encVals = model->getSensorVals() - encStartVals;
         angleChange = (encVals[1] - encVals[0]) / 2.0; // right - left
 
-        angleError = (targetAngle - Pose2d::fromOdomState(getState()).rotation().angle())
+        angleError = (targetAngle - Pose2d::fromOdomState(getState()).angle())
             .abs().convert(radian);
         std::cout << "turnAngle error: " << angleError * 180 / okapi::pi << " deg" << std::endl;
 
@@ -211,7 +211,7 @@ void XOdomController::turnToAngle(QAngle iangle, TurnType iturnType, int itimeou
     if (angle.abs() > turnThreshold) {
         LOG_INFO("XOdomController: Turning " + std::to_string(angle.convert(degree)) +
                  " degrees");
-        turnAngle(angle, iturnType, itimeout);
+        turnAngle(angle, iturnType, itimeout, iactions);
     }
 }
 
@@ -229,7 +229,7 @@ void XOdomController::turnToPoint(const Point& ipoint, int itimeout,
     if (angle.abs() > turnThreshold) {
         LOG_INFO("XOdomController: Turning " + std::to_string(angle.convert(degree)) +
                  " degrees");
-        turnAngle(angle, TurnType::PointTurn, itimeout);
+        turnAngle(angle, TurnType::PointTurn, itimeout, iactions);
     }
 }
 
@@ -241,7 +241,8 @@ void XOdomController::strafeToPoint(const Point& ipoint, int itimeout,
             Translation2d{ipoint.x, ipoint.y}, 
             Rotation2d{-getState().theta}
         }, 
-        itimeout
+        itimeout,
+        iactions
     );
 }
 
@@ -271,7 +272,7 @@ void XOdomController::updateStrafeToPose(
     double distanceOutput = distanceSlewRate->calculate(preSlewDistanceOutput);
     std::cout << "Distance Pre-slew: " << preSlewDistanceOutput << " | Slewed: " << distanceOutput << std::endl;
 
-    // QAngle gyroRotation = -currentPose.rotation().angle();
+    // QAngle gyroRotation = -currentPose.angle();
     QAngle gyroRotation = -model->getHeading() * degree;
 
     // Normalize the vector & scale it by the PID output
@@ -307,7 +308,7 @@ void XOdomController::strafeToPose(const Pose2d& ipose, int itimeout,
     strafeDistancePid->setTarget(0.0);
     strafeAnglePid->reset();
     strafeAnglePid->flipDisable(false);
-    strafeAnglePid->setTarget(ipose.rotation().angle().convert(radian));
+    strafeAnglePid->setTarget(ipose.angle().convert(radian));
     distancePid->flipDisable(true);
     anglePid->flipDisable(true);
     turnPid->flipDisable(true);
@@ -341,8 +342,8 @@ void XOdomController::setState(OdomState istate) {
 
 void XOdomController::setPose(const Pose2d &ipose) {
     odometry->setState({
-        ipose.translation().x(), ipose.translation().y(), 
-        constrainAnglePi(-ipose.rotation().angle().convert(radian)) * radian
+        ipose.x(), ipose.y(), 
+        constrainAnglePi(-ipose.angle().convert(radian)) * radian
     }, StateMode::CARTESIAN);
 }
 
@@ -422,7 +423,7 @@ void XOdomController::loop() {
         if (i == 5) {
             auto currentPose = Pose2d::fromOdomState(getState());
             GUI::getInstance().setData({
-                currentPose.translation().x(), currentPose.translation().y(), currentPose.rotation().angle()
+                currentPose.x(), currentPose.y(), -currentPose.angle()
             }, {0, 0, 0});
             i = 0;
         } else {

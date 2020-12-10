@@ -83,8 +83,8 @@ Drive::Drive() {
                                                     strafingAngleTimeFactory.create(),
                                                     std::make_unique<PassthroughFilter>(),
                                                     controllerLogger),
-        std::make_unique<SlewRateLimiter>(DISTANCE_SLEW_RATE),
-        std::make_unique<SlewRateLimiter>(ANGLE_SLEW_RATE),
+        std::make_unique<SlewRateLimiter>(DISTANCE_SLEW_INCREASE_RATE, DISTANCE_SLEW_DECREASE_RATE),
+        std::make_unique<SlewRateLimiter>(ANGLE_SLEW_INCREASE_RATE, ANGLE_SLEW_DECREASE_RATE),
         gearing, odomScales, DISTANCE_BEFORE_MOVE, ANGLE_BEFORE_TURN, controllerLogger
     );
     controller->startTask();

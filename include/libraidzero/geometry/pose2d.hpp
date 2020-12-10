@@ -95,11 +95,32 @@ public:
     const Translation2d& translation() const { return m_translation; }
 
     /**
+     * Returns the X component of the underlying translation.
+     *
+     * @return The x component of the underlying translation.
+     */
+    okapi::QLength x() const { return m_translation.x(); }
+  
+    /**
+     * Returns the Y component of the underlying translation.
+     *
+     * @return The y component of the underlying translation.
+     */
+    okapi::QLength y() const { return m_translation.y(); }
+
+    /**
      * Returns the underlying rotation.
      *
      * @return Reference to the rotational component of the pose.
      */
     const Rotation2d& rotation() const { return m_rotation; }
+
+    /**
+     * Returns the angle of the underlying rotation.
+     *
+     * @return The angle of the underlying rotation.
+     */
+    okapi::QAngle angle() const { return m_rotation.angle(); }
 
     /**
      * Transforms the pose by the given transformation and returns the new pose.

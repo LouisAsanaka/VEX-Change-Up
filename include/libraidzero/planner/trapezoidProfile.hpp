@@ -22,8 +22,16 @@ namespace planner {
             double position;
             double velocity;
 
-            State(double position, double velocity) : 
+            State(double position = 0.0, double velocity = 0.0) : 
                 position{position}, velocity{velocity} {}
+
+            bool operator==(const State& rhs) const {
+                return position == rhs.position && velocity == rhs.velocity;
+            }
+
+            bool operator!=(const State& rhs) const { 
+                return !(*this == rhs); 
+            }
         };
 
         TrapezoidProfile(const Constraints& iconstraints, const State& igoal, 

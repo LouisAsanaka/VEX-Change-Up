@@ -4,16 +4,19 @@
 
 #include <algorithm>
 
-SlewRateLimiter::SlewRateLimiter(double irateLimit, double iinitialValue)
-    : rateLimit{irateLimit}, previousTime{pros::millis()}, 
-      previousValue{iinitialValue}
+SlewRateLimiter::SlewRateLimiter(double irateIncreaseLimit, double irateDecreaseLimit, double iinitialValue)
+    : rateIncreaseLimit{irateIncreaseLimit}, 
+      rateDecreaseLimit{
+          irateDecreaseLimit == 0 ? 10000000 : irateDecreaseLimit
+      }, 
+      previousTime{pros::millis()}, previousValue{iinitialValue}
 {}
 
 double SlewRateLimiter::calculate(double input) {
     std::uint32_t currentTime = pros::millis();
     double elapsedTime = (currentTime - previousTime) / 1000.0;
     previousValue += std::clamp(
-        input - previousValue, -rateLimit * elapsedTime, rateLimit * elapsedTime
+        input - previousValue, -rateDecreaseLimit * elapsedTime, rateIncreaseLimit * elapsedTime
     );
     previousTime = currentTime;
     return previousValue;
