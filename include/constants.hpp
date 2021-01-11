@@ -27,7 +27,7 @@ constexpr double DRIVE_ENCODER_TARGET_ERROR       = 40;
 constexpr double DRIVE_ENCODER_TARGET_DERIV       = 5;
 constexpr okapi::QTime DRIVE_ENCODER_TARGET_TIME  = 200_ms;
 
-constexpr double STRAFING_DIST_TARGET_ERROR       = 0.015;
+constexpr double STRAFING_DIST_TARGET_ERROR       = 0.02;
 constexpr double STRAFING_DIST_TARGET_DERIV       = 5;
 constexpr okapi::QTime STRAFING_DIST_TARGET_TIME  = 150_ms;
 

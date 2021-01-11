@@ -97,7 +97,7 @@ void Conveyor::loop() {
 			stop(Position::Top);
 			checkingForBalls.store(false, std::memory_order_release);
 		}
-		pros::delay(100);
+		pros::delay(50);
 	}
 }
 } // namespace robot

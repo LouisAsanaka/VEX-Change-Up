@@ -44,10 +44,10 @@ void opcontrol() {
 				xDriveRegularOverride = !xDriveRegularOverride;
 				overrideLatch = true;
 				if (xDriveRegularOverride) {
-					master.rumble(".-");
+					master.rumble("..");
 					master.setText(0, 0, "Mode: robot");
 				} else {
-					master.rumble("-.");
+					master.rumble(".");
 					master.setText(0, 0, "Mode: field");
 				}
 			}
