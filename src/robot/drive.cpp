@@ -94,8 +94,10 @@ Drive::Drive() {
         DRIVE_SPEED * toUnderlyingType(gearing.internalGearset)
     );
 
-    pros::delay(1000);
-    gyro->calibrate();
+    pros::delay(200);
+    while (gyro->isCalibrating()) {
+        pros::delay(100);
+    }
 }
 
 void Drive::fieldOrientedControl(double irightSpeed, double iforwardSpeed, 
@@ -105,6 +107,7 @@ void Drive::fieldOrientedControl(double irightSpeed, double iforwardSpeed,
     //std::cout << "Angle: " << angle.convert(degree) << std::endl;
     Translation2d input {irightSpeed * meter, iforwardSpeed * meter};
     input = input.rotateBy(Rotation2d{-angle});
+
     model->xArcade(input.x().convert(meter), input.y().convert(meter), 
         iyaw, ithreshold);
 }
