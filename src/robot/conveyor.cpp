@@ -7,7 +7,8 @@ namespace robot {
 
 Conveyor::Conveyor() 
 	: TaskWrapper{}, 
-	  lineTracker{'B'}, average{0},
+	  bottomLineTracker{'B'}, bottomAverage{0},
+	  topLineTracker{'A'}, topAverage{0},
 	  checkingForBalls{false}, targetBallsPassed{0} 
 {
 	MotorGroup topMotor {{10}};
@@ -24,7 +25,8 @@ Conveyor::Conveyor()
 	bottomController = std::make_unique<MotorController>(bottomMotor);
 	bottomController->tarePosition();
 
-	average = lineTracker.calibrate();
+	bottomAverage = 2700;
+	topAverage = 2700;
 }
 
 void Conveyor::moveUp(double voltageScale, Position position) {
@@ -79,25 +81,33 @@ void Conveyor::waitUntilPassed(int numberOfBalls) {
 	}
 }
 
+void Conveyor::calibrate() {
+	bottomAverage = bottomLineTracker.calibrate();
+	topAverage = topLineTracker.calibrate();
+}
+
 void Conveyor::loop() {
 	while (task->notifyTake(0) == 0U) {
+		//std::cout << lineTracker.get_value() << ": avg: " << average << std::endl;
 		if (checkingForBalls.load(std::memory_order_acquire)) {
 			int currentBallsPassed = 0;
 			while (currentBallsPassed < targetBallsPassed.load(std::memory_order_release)) {
 				//std::cout << average << " - " << lineTracker.get_value() << std::endl;
-				if (average - lineTracker.get_value() > 400) {
+				if (bottomAverage - bottomLineTracker.get_value() > 400) {
 					//std::cout << "passed" << std::endl;
 					++currentBallsPassed;
 				}
-				pros::delay(50);
+				pros::delay(10);
 			}
-			pros::delay(200);
+			while (!(topAverage - topLineTracker.get_value() > 400)) {
+				pros::delay(10);
+			}
 			stop(Position::Bottom);
-			pros::delay(400);
+			pros::delay(200);
 			stop(Position::Top);
 			checkingForBalls.store(false, std::memory_order_release);
 		}
-		pros::delay(50);
+		pros::delay(100);
 	}
 }
 } // namespace robot

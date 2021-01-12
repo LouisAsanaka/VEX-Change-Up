@@ -27,7 +27,7 @@ constexpr double DRIVE_ENCODER_TARGET_ERROR       = 40;
 constexpr double DRIVE_ENCODER_TARGET_DERIV       = 5;
 constexpr okapi::QTime DRIVE_ENCODER_TARGET_TIME  = 200_ms;
 
-constexpr double STRAFING_DIST_TARGET_ERROR       = 0.02;
+constexpr double STRAFING_DIST_TARGET_ERROR       = 0.03;
 constexpr double STRAFING_DIST_TARGET_DERIV       = 5;
 constexpr okapi::QTime STRAFING_DIST_TARGET_TIME  = 150_ms;
 
@@ -55,7 +55,7 @@ constexpr double STRAFE_DISTANCE_KP = 5;
 constexpr double STRAFE_DISTANCE_KI = 0.0;
 constexpr double STRAFE_DISTANCE_KD = 0.003;
 constexpr planner::TrapezoidProfile::Constraints
-    STRAFE_DISTANCE_CONTSTRAINTS {1.0, 1.0}; // m/s, m/s^2
+    STRAFE_DISTANCE_CONTSTRAINTS {1.6, 2.0}; // m/s, m/s^2
 
 constexpr double STRAFE_ANGLE_KP = 0.03;
 constexpr double STRAFE_ANGLE_KI = 0.0;

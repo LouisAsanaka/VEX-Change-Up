@@ -15,8 +15,10 @@ public:
 	std::unique_ptr<MotorController> topController;
 	std::unique_ptr<MotorController> bottomController;
 
-	pros::ADIAnalogIn lineTracker;
-	int average;
+	pros::ADIAnalogIn bottomLineTracker;
+	int bottomAverage;
+	pros::ADIAnalogIn topLineTracker;
+	int topAverage;
 
 	std::atomic_bool checkingForBalls;
 	std::atomic_int targetBallsPassed;
@@ -31,6 +33,8 @@ public:
 
 	void startCountingBalls();
 	void waitUntilPassed(int);
+
+	void calibrate();
 
 	void loop() override;
 };

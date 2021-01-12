@@ -24,6 +24,7 @@ void opcontrol() {
 
 	robot::drive->resetEncoders();
 	robot::drive->controller->setState({0_m, 0_m, 0_deg});
+	robot::conveyor->calibrate();
 
 	int startTime = pros::millis();
 	while (true) {

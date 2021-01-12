@@ -22,7 +22,6 @@
     while (!settled && timeLeft && task->notifyTake(0) == 0U) { \
         loopedBody                                              \
         timeElapsed = pros::millis() - start;                   \
-        executeActions(iunitsError, timeElapsed, iactions);     \
         settled = settleFunction();                             \
         timeLeft = (timeElapsed < itimeout);                    \
         rate->delayUntil(10_ms);                                \
