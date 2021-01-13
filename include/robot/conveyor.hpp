@@ -9,19 +9,24 @@ namespace robot {
 class Conveyor : public TaskWrapper {
 public:
 	enum class Position {
-		Top, Bottom
+		Top, Bottom, None
+	};
+	enum class ControlMode {
+		Voltage, ScoreCount, StoreBall, WaitUntilEmpty
 	};
 
 	std::unique_ptr<MotorController> topController;
 	std::unique_ptr<MotorController> bottomController;
 
 	pros::ADIAnalogIn bottomLineTracker;
-	int bottomAverage;
+	int bottomAverage{0};
 	pros::ADIAnalogIn topLineTracker;
-	int topAverage;
+	int topAverage{0};
 
-	std::atomic_bool checkingForBalls;
-	std::atomic_int targetBallsPassed;
+	std::atomic_bool isIndexing{false};
+	std::atomic<ControlMode> controlMode{ControlMode::Voltage};
+	std::atomic_int targetBallsPassed{0};
+	std::atomic<Position> storedPosition{Position::None};
 
 	Conveyor();
 
@@ -31,8 +36,10 @@ public:
 	void stopAll();
 	void stop(Position);
 
-	void startCountingBalls();
+	void startIndexing(ControlMode);
 	void waitUntilPassed(int);
+	void waitUntilStored(Position);
+	void waitUntilEmpty(Position);
 
 	void calibrate();
 

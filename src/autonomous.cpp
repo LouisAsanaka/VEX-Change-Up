@@ -1,6 +1,7 @@
 #include "main.h"
 #include "autonomous.hpp"
 #include "constants.hpp"
+#include "pros/rtos.hpp"
 #include "robot.hpp"
 #include "robot/conveyor.hpp"
 #include "robot/drive.hpp"
@@ -25,7 +26,9 @@ void autonomous() {
         rightSide3(true);
     } else {
         reset(0_m, 0_m, 0_deg, false);
+        //releaseComponents();
         rightSide3(true);
+        // rightSide3(true);
         // std::shared_ptr<PurePursuitPath> path = std::make_shared<PurePursuitPath>(
         //     std::vector<Pose2d>{
         //         {0.6_m, 0_m, 0_deg},
@@ -61,13 +64,6 @@ void reset(okapi::QLength x, okapi::QLength y,
            okapi::QAngle initialAngle, bool currentAngle) {
     if (currentAngle) {
         initialAngle = -robot::drive->model->getHeading() * degree;
-        // Controller master {ControllerId::master};
-        // std::stringstream ss;
-        // ss << "Angle: ";
-        // ss << initialAngle.convert(degree);
-        // ss << " deg";
-        // std::cout << ss.str() << std::endl;
-        // master.setText(0, 0, ss.str());
     }
     robot::drive->resetEncoders();
     robot::drive->model->resetImu(initialAngle);
@@ -89,19 +85,25 @@ void backupFromGoal() {
     robot::drive->model->stop();
 }
 
+void releaseComponents() {
+    // Backup to release intake
+    robot::drive->model->xArcade(0.0, -1.0, 0.0);
+    pros::delay(400);
+    robot::conveyor->moveDown(0.6, robot::Conveyor::Position::Top);
+    robot::drive->model->xArcade(0.0, 1.0, 0.0);
+    pros::delay(100);
+    robot::conveyor->stop(robot::Conveyor::Position::Top);
+    robot::drive->model->stop();
+}
+
 void rightSide1(bool shouldReset, bool shouldBackOut) {
     if (shouldReset) {
         reset(0_m, 0_m, 0_deg);
     }
-    // Backup to release intake
-    robot::drive->model->xArcade(0.0, -0.8, 0.0);
-    pros::delay(200);
-    robot::drive->model->xArcade(0.0, 0.6, 0.0);
-    pros::delay(100);
-    robot::drive->model->stop();
+    releaseComponents();
 
     // Strafe to face the corner goal
-    robot::drive->controller->strafeToPose({-0.04_m, -0.55_m, 45_deg}, 1200);
+    robot::drive->controller->strafeToPose({-0.04_m, -0.55_m, 45_deg}, 1400);
 
     robot::intake->spinIn(1.0);
     // Intake the ball in front of the corner goal
@@ -111,12 +113,23 @@ void rightSide1(bool shouldReset, bool shouldBackOut) {
     // TODO(louis): ASYNC ACTION
 
     // Finish scoring the preload ball
-    robot::drive->model->xArcade(0.0, 0.7, 0.0);
-    pros::delay(600);
-    backupFromGoal();
-    robot::conveyor->startCountingBalls();
+    robot::conveyor->startIndexing(robot::Conveyor::ControlMode::StoreBall);
+    robot::conveyor->moveUp(1.0, robot::Conveyor::Position::Bottom);
+    int time1 = pros::millis();
+    robot::conveyor->stopAll();
+    if (pros::millis() - time1 < 600) {
+        pros::delay(600 - (pros::millis() - time1));
+    }
+    robot::drive->model->stop();
+    // backupFromGoal();
+    // pros::delay(10);
+    // robot::drive->model->stop(); // BIG BUG DON'T DELETE
     robot::conveyor->moveBoth(1.0);
-    robot::conveyor->waitUntilPassed(1);
+    pros::delay(50);
+    robot::conveyor->stop(robot::Conveyor::Position::Bottom);
+    pros::delay(500);
+    robot::conveyor->stopAll();
+    pros::delay(50);
     // TODO(louis): ASYNC ACTION
     //std::cout << "pop: " << Pose2d::fromOdomState(robot::drive->controller->getState()).toString() << std::endl;
 
@@ -135,7 +148,7 @@ void rightSide2(bool shouldReset, bool shouldBackOut) {
     robot::intake->spinOut(1.0);
     backout(500);
     robot::intake->stop();
-    robot::drive->controller->setMaxVoltage(0.85 * 12000);
+    //robot::drive->controller->setMaxVoltage(0.85 * 12000);
 
     // std::stringstream ss;
     // ss << robot::drive->controller->getState().x.convert(meter);
@@ -145,7 +158,7 @@ void rightSide2(bool shouldReset, bool shouldBackOut) {
     // Controller master {ControllerId::master};
     // master.setText(0, 0, ss.str());
 
-    robot::drive->controller->strafeToPose({0.93_m, -0.43_m, 0_deg}, 3000);
+    robot::drive->controller->strafeToPose({0.91_m, -0.43_m, 0_deg}, 3000);
     // TODO(louis): ASYNC ACTION
     // std::cout << "Final: " << robot::drive->controller->getState().str() << std::endl;
     // return;
@@ -159,7 +172,6 @@ void rightSide2(bool shouldReset, bool shouldBackOut) {
     // master.setText(0, 0, ss.str());
 
     // Score the second ball by ramming into the goal & backing up
-    robot::conveyor->startCountingBalls();
     robot::drive->model->xArcade(0.0, 0.7, 0.0);
     pros::delay(500); // 1000 millis
     reset(0.93_m, -0.12_m, 0_deg, true);
@@ -183,16 +195,15 @@ void rightSide3(bool shouldReset) {
     
     // Move to third goal while out-taking
     robot::intake->spinOut(1.0);
-    robot::drive->controller->strafeToPose({1.95_m, -0.40_m, -45_deg}, 2000);
+    robot::drive->controller->strafeToPose({1.97_m, -0.40_m, -45_deg}, 2000);
     robot::intake->stop();
     // TODO(louis): ASYNC ACTION
 
     // Intake the ball in front of the third goal & score it
-    robot::conveyor->startCountingBalls();
     robot::intake->spinIn(1.0);
     robot::drive->controller->driveForDistance(0.42_m, 800);
     // TODO(louis): ASYNC ACTION
-    pros::delay(500);
+    pros::delay(350);
     robot::intake->stop();
 
     robot::drive->model->xArcade(0.0, 0.7, 0.0);
@@ -204,7 +215,6 @@ void rightSide3(bool shouldReset) {
 
     // Backup and out-take
     robot::intake->spinOut(1.0);
-    pros::delay(100);
     robot::drive->model->xArcade(0.0, -1.0, 0.0);
     pros::delay(800);
     robot::intake->stop();

@@ -83,6 +83,7 @@ void opcontrol(void);
 #include <exception>
 #include <string>
 #include <sstream>
+#include <atomic>
 #endif
 
 #endif  // _PROS_MAIN_H_
