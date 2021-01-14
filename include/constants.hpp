@@ -25,15 +25,15 @@ constexpr double DRIVE_MAX_JERK  = 8.0;
 // Drivetrain settling tolerances
 constexpr double DRIVE_ENCODER_TARGET_ERROR       = 40;
 constexpr double DRIVE_ENCODER_TARGET_DERIV       = 5;
-constexpr okapi::QTime DRIVE_ENCODER_TARGET_TIME  = 200_ms;
+constexpr okapi::QTime DRIVE_ENCODER_TARGET_TIME  = 100_ms;
 
 constexpr double STRAFING_DIST_TARGET_ERROR       = 0.03;
 constexpr double STRAFING_DIST_TARGET_DERIV       = 5;
-constexpr okapi::QTime STRAFING_DIST_TARGET_TIME  = 150_ms;
+constexpr okapi::QTime STRAFING_DIST_TARGET_TIME  = 80_ms;
 
 constexpr double STRAFING_ANGLE_TARGET_ERROR      = 2;
 constexpr double STRAFING_ANGLE_TARGET_DERIV      = 5;
-constexpr okapi::QTime STRAFING_ANGLE_TARGET_TIME = 150_ms;
+constexpr okapi::QTime STRAFING_ANGLE_TARGET_TIME = 80_ms;
 
 constexpr okapi::QLength DISTANCE_BEFORE_MOVE = 5_cm;
 constexpr okapi::QAngle ANGLE_BEFORE_TURN     = 5_deg;
