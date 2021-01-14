@@ -14,5 +14,6 @@ void releaseComponents();
 void rightSide1(bool shouldReset = true, bool shouldBackOut = true);
 void rightSide2(bool shouldReset = true, bool shouldBackOut = true);
 void rightSide3(bool shouldReset = true);
+void goingMid();
 
 void autonomous();

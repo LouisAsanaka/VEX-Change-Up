@@ -26,9 +26,7 @@ void autonomous() {
         rightSide3(true);
     } else {
         reset(0_m, 0_m, 0_deg, false);
-        //releaseComponents();
         rightSide3(true);
-        // rightSide3(true);
         // std::shared_ptr<PurePursuitPath> path = std::make_shared<PurePursuitPath>(
         //     std::vector<Pose2d>{
         //         {0.6_m, 0_m, 0_deg},
@@ -218,5 +216,42 @@ void rightSide3(bool shouldReset) {
     robot::drive->model->xArcade(0.0, -1.0, 0.0);
     pros::delay(800);
     robot::intake->stop();
+    robot::drive->model->stop();
+}
+
+void goingMid() {
+    reset(0_m, 0_m, 0_deg);
+    rightSide1(true, false);
+    // Backout to second goal
+    robot::intake->spinIn(1.0);
+    robot::drive->model->xArcade(0.0, -0.8, 0.0);
+    robot::conveyor->startIndexing(robot::Conveyor::ControlMode::StoreBall);
+    robot::conveyor->moveBoth(1.0);
+    robot::conveyor->waitUntilStored(robot::Conveyor::Position::Top);
+    robot::conveyor->stopAll();
+    robot::intake->stop();
+    robot::drive->model->stop();
+    robot::drive->controller->strafeToPose({-0.73_m, -1.31_m, -225_deg}, 4000);
+    robot::drive->model->xArcade(0.0, 0.4, 0.0);
+    pros::delay(100);
+    robot::intake->spinOut(1.0);
+    robot::conveyor->startIndexing(robot::Conveyor::ControlMode::WaitUntilEmpty);
+    robot::conveyor->moveBoth(-1.0);
+    robot::conveyor->waitUntilEmpty(robot::Conveyor::Position::Top);
+    pros::delay(400);
+    robot::conveyor->stopAll();
+    pros::delay(100);
+    robot::intake->stop();
+    robot::drive->controller->strafeToPose({-0.95_m, -0.43_m, 0_deg}, 4000);
+    // Score the second ball by ramming into the goal & backing up
+    robot::drive->model->xArcade(0.0, 0.7, 0.0);
+    pros::delay(500); // 1000 millis
+    backupFromGoal();
+    robot::conveyor->moveBoth(1.0);
+    pros::delay(1100);
+    robot::conveyor->stopAll();
+    pros::delay(100);
+    robot::drive->model->xArcade(0.0, -1.0, 0.0);
+    pros::delay(1000);
     robot::drive->model->stop();
 }
