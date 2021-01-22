@@ -9,6 +9,9 @@
 
 #include "gui.hpp"
 
+using RollerPosition = robot::Conveyor::RollerPosition;
+using BallPosition = robot::Conveyor::BallPosition;
+
 void autonomous() {
     #if defined(RUN_WITHOUT_ROBOT) && RUN_WITHOUT_ROBOT 
 	return;
@@ -27,6 +30,12 @@ void autonomous() {
     } else {
         reset(0_m, 0_m, 0_deg, false);
         rightSide3(true);
+        // robot::intake->spinIn(1.0);
+        // robot::conveyor->moveBoth(1.0);
+        // //robot::conveyor->startCountingPassed(BallPosition::Top);
+        // robot::conveyor->waitUntilEmpty(BallPosition::Top);
+        // robot::conveyor->stopAll();
+        // robot::intake->stop();
         // std::shared_ptr<PurePursuitPath> path = std::make_shared<PurePursuitPath>(
         //     std::vector<Pose2d>{
         //         {0.6_m, 0_m, 0_deg},
@@ -85,13 +94,13 @@ void backupFromGoal() {
 
 void releaseComponents() {
     // Backup to release intake
-    robot::drive->model->xArcade(0.0, -1.0, 0.0);
-    pros::delay(400);
-    robot::conveyor->moveDown(0.6, robot::Conveyor::Position::Top);
-    robot::drive->model->xArcade(0.0, 1.0, 0.0);
+    //robot::drive->model->xArcade(0.0, -1.0, 0.0);
+    //pros::delay(400);
+    robot::conveyor->moveDown(0.6, RollerPosition::Top);
+    //robot::drive->model->xArcade(0.0, 1.0, 0.0);
     pros::delay(100);
-    robot::conveyor->stop(robot::Conveyor::Position::Top);
-    robot::drive->model->stop();
+    robot::conveyor->stop(RollerPosition::Top);
+    //robot::drive->model->stop();
 }
 
 void rightSide1(bool shouldReset, bool shouldBackOut) {
@@ -111,20 +120,17 @@ void rightSide1(bool shouldReset, bool shouldBackOut) {
     // TODO(louis): ASYNC ACTION
 
     // Finish scoring the preload ball
-    robot::conveyor->startIndexing(robot::Conveyor::ControlMode::StoreBall);
-    robot::conveyor->moveUp(1.0, robot::Conveyor::Position::Bottom);
+    robot::conveyor->moveUp(1.0, RollerPosition::Bottom);
     int time1 = pros::millis();
     robot::conveyor->stopAll();
     if (pros::millis() - time1 < 600) {
         pros::delay(600 - (pros::millis() - time1));
     }
     robot::drive->model->stop();
-    // backupFromGoal();
-    // pros::delay(10);
-    // robot::drive->model->stop(); // BIG BUG DON'T DELETE
+
     robot::conveyor->moveBoth(1.0);
     pros::delay(50);
-    robot::conveyor->stop(robot::Conveyor::Position::Bottom);
+    robot::conveyor->stop(RollerPosition::Bottom);
     pros::delay(500);
     robot::conveyor->stopAll();
     pros::delay(50);
@@ -225,9 +231,9 @@ void goingMid() {
     // Backout to second goal
     robot::intake->spinIn(1.0);
     robot::drive->model->xArcade(0.0, -0.8, 0.0);
-    robot::conveyor->startIndexing(robot::Conveyor::ControlMode::StoreBall);
+    //robot::conveyor->startIndexing(robot::Conveyor::ControlMode::StoreBall);
     robot::conveyor->moveBoth(1.0);
-    robot::conveyor->waitUntilStored(robot::Conveyor::Position::Top);
+    //robot::conveyor->waitUntilStored(RollerPosition::Top);
     robot::conveyor->stopAll();
     robot::intake->stop();
     robot::drive->model->stop();
@@ -235,9 +241,9 @@ void goingMid() {
     robot::drive->model->xArcade(0.0, 0.4, 0.0);
     pros::delay(100);
     robot::intake->spinOut(1.0);
-    robot::conveyor->startIndexing(robot::Conveyor::ControlMode::WaitUntilEmpty);
+    //robot::conveyor->startIndexing(robot::Conveyor::ControlMode::WaitUntilEmpty);
     robot::conveyor->moveBoth(-1.0);
-    robot::conveyor->waitUntilEmpty(robot::Conveyor::Position::Top);
+    //robot::conveyor->waitUntilEmpty(RollerPosition::Top);
     pros::delay(400);
     robot::conveyor->stopAll();
     pros::delay(100);

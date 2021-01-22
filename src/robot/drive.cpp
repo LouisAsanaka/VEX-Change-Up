@@ -32,7 +32,7 @@ Drive::Drive() {
         okapi::quadEncoderTPR
     };
     auto leftLeader = std::make_shared<Motor>(1);
-    auto rightLeader = std::make_shared<Motor>(-2);
+    auto rightLeader = std::make_shared<Motor>(-17);
     auto leftEnc = std::make_shared<ADIEncoder>('C', 'D', true);
     auto rightEnc = std::make_shared<ADIEncoder>('G', 'H', false);
     auto midEnc = std::make_shared<ADIEncoder>('E', 'F', true);

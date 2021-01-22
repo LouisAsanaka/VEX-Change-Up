@@ -1,5 +1,6 @@
 #include "robot/conveyor.hpp"
 #include "main.h"
+#include "constants.hpp"
 #include "libraidzero/api.hpp"
 #include <atomic>
 
@@ -7,7 +8,7 @@ namespace robot {
 
 Conveyor::Conveyor() 
 	: TaskWrapper{}, 
-	  bottomLineTracker{'B'}, topLineTracker{'A'}
+	  midSensor{16}, topSensor{5}
 {
 	MotorGroup topMotor {{10}};
 	topMotor.setGearing(AbstractMotor::gearset::blue);
@@ -22,21 +23,18 @@ Conveyor::Conveyor()
 
 	bottomController = std::make_unique<MotorController>(bottomMotor);
 	bottomController->tarePosition();
-
-	bottomAverage = 2700;
-	topAverage = 2700;
 }
 
-void Conveyor::moveUp(double voltageScale, Position position) {
-	if (position == Position::Top) {
+void Conveyor::moveUp(double voltageScale, RollerPosition position) {
+	if (position == RollerPosition::Top) {
 		topController->moveVoltage(voltageScale);
 	} else {
 		bottomController->moveVoltage(voltageScale);
 	}
 }
 
-void Conveyor::moveDown(double voltageScale, Position position) {
-	if (position == Position::Top) {
+void Conveyor::moveDown(double voltageScale, RollerPosition position) {
+	if (position == RollerPosition::Top) {
 		topController->moveVoltage(-voltageScale);
 	} else {
 		bottomController->moveVoltage(-voltageScale);
@@ -44,8 +42,8 @@ void Conveyor::moveDown(double voltageScale, Position position) {
 }
 
 void Conveyor::moveBoth(double voltageScale) {
-	moveUp(voltageScale, Position::Top);
-	moveUp(voltageScale, Position::Bottom);
+	moveUp(voltageScale, RollerPosition::Top);
+	moveUp(voltageScale, RollerPosition::Bottom);
 }
 
 void Conveyor::stopAll() {
@@ -53,133 +51,114 @@ void Conveyor::stopAll() {
 	bottomController->moveVoltage(0);
 }
 
-void Conveyor::stop(Position position) {
-	if (position == Position::Top) {
+void Conveyor::stop(RollerPosition position) {
+	if (position == RollerPosition::Top) {
 		topController->moveVoltage(0);
 	} else {
 		bottomController->moveVoltage(0);
 	}
 }
 
-void Conveyor::startIndexing(ControlMode mode) {
-	if (isIndexing.load(std::memory_order_acquire)) {
-		return;
-	}
-	isIndexing.store(true, std::memory_order_release);
-	controlMode.store(mode, std::memory_order_release);
-	targetBallsPassed.store(99, std::memory_order_release);
+void Conveyor::enableSensors() {
+	areSensorsReady.store(true, std::memory_order_release);
 }
 
-void Conveyor::waitUntilPassed(int numberOfBalls) {
-	if (!isIndexing.load(std::memory_order_acquire) || 
-		controlMode.load(std::memory_order_acquire) != ControlMode::ScoreCount
+bool Conveyor::isBallIn(BallPosition position) {
+	return isBallPresent[static_cast<int>(position)];
+}
+
+void Conveyor::startCountingPassed(BallPosition iposition) {
+	controlMode.store(ControlMode::WaitUntilPassed, std::memory_order_release);
+	position.store(iposition, std::memory_order_release);
+	ballsPassed.store(0, std::memory_order_release);
+	currentlyPassing.store(false, std::memory_order_release);
+}
+
+void Conveyor::waitUntilPassed(int number, int itimeout) {
+	if (itimeout == 0) {
+        itimeout = ~itimeout;
+    }
+	
+	int startTime = pros::millis();
+	while (
+		ballsPassed.load(std::memory_order_acquire) < number &&
+		pros::millis() - startTime < itimeout
 	) {
-		return;
-	}
-	targetBallsPassed.store(numberOfBalls, std::memory_order_release);
-	while (isIndexing.load(std::memory_order_acquire)) {
 		pros::delay(20);
 	}
+	controlMode.store(ControlMode::Voltage, std::memory_order_release);
 }
 
-void Conveyor::waitUntilStored(Position position) {
-	if (!isIndexing.load(std::memory_order_acquire) ||
-		controlMode.load(std::memory_order_acquire) != ControlMode::StoreBall
-	) {
-		return;
-	}
-	storedPosition.store(position, std::memory_order_release);
-	while (isIndexing.load(std::memory_order_acquire)) {
+void Conveyor::waitUntilStored(BallPosition iposition, int itimeout) {
+	if (itimeout == 0) {
+        itimeout = ~itimeout;
+    }
+
+	controlMode.store(ControlMode::WaitUntilStored, std::memory_order_release);
+	position.store(iposition, std::memory_order_release);
+
+	int startTime = pros::millis();
+	while (!isBallIn(iposition) && pros::millis() - startTime < itimeout) {
 		pros::delay(20);
 	}
+	controlMode.store(ControlMode::Voltage, std::memory_order_release);
 }
 
-void Conveyor::waitUntilEmpty(Position position) {
-	if (!isIndexing.load(std::memory_order_acquire) ||
-		controlMode.load(std::memory_order_acquire) != ControlMode::WaitUntilEmpty
-	) {
-		return;
-	}
-	storedPosition.store(position, std::memory_order_release);
-	while (isIndexing.load(std::memory_order_acquire)) {
+void Conveyor::waitUntilEmpty(BallPosition iposition, int itimeout) {
+	if (itimeout == 0) {
+        itimeout = ~itimeout;
+    }
+
+	controlMode.store(ControlMode::WaitUntilEmpty, std::memory_order_release);
+	position.store(iposition, std::memory_order_release);
+
+	int startTime = pros::millis();
+	while (isBallIn(iposition) && pros::millis() - startTime < itimeout) {
 		pros::delay(20);
 	}
-}
-
-void Conveyor::calibrate() {
-	bottomAverage = bottomLineTracker.calibrate();
-	topAverage = topLineTracker.calibrate();
+	controlMode.store(ControlMode::Voltage, std::memory_order_release);
 }
 
 void Conveyor::loop() {
-	while (task->notifyTake(0) == 0U) {
-		// std::cout << bottomLineTracker.get_value() << ": avg: " << bottomAverage << std::endl;
-		if (isIndexing.load(std::memory_order_acquire)) {
-			if (controlMode == ControlMode::ScoreCount) {
-				int currentBallsPassed = 0;
-				while (currentBallsPassed < targetBallsPassed.load(std::memory_order_release)) {
-					//std::cout << average << " - " << lineTracker.get_value() << std::endl;
-					if (bottomAverage - bottomLineTracker.get_value() > 400) {
-						//std::cout << "passed" << std::endl;
-						++currentBallsPassed;
-					}
-					pros::delay(5);
-				}
-				while (!(topAverage - topLineTracker.get_value() > 400)) {
-					pros::delay(5);
-				}
-				stop(Position::Bottom);
-				pros::delay(200);
-				stop(Position::Top);
-				isIndexing.store(false, std::memory_order_release);
-				controlMode.store(ControlMode::Voltage, std::memory_order_release);
-			} else if (controlMode == ControlMode::StoreBall) {
-				while (storedPosition.load(std::memory_order_acquire) == Position::None) {
-					pros::delay(20);
-				}
-				Position position = storedPosition.load(std::memory_order_acquire);
-				if (position == Position::Top) {
-					// Ignore currently stored ball
-					while (bottomAverage - bottomLineTracker.get_value() > 400) {
-						pros::delay(5);
-					}
-					while (!(topAverage - topLineTracker.get_value() > 400)) {
-						pros::delay(5);
-					}
-				} else {
-					// Ignore currently stored ball
-					while (bottomAverage - bottomLineTracker.get_value() > 400) {
-						pros::delay(5);
-					}
-					while (!(bottomAverage - bottomLineTracker.get_value() > 400)) {
-						pros::delay(5);
-					}
-				}
-				stop(position);
-				isIndexing.store(false, std::memory_order_release);
-				storedPosition.store(Position::None, std::memory_order_release);
-				controlMode.store(ControlMode::Voltage, std::memory_order_release);
-			} else if (controlMode == ControlMode::WaitUntilEmpty) {
-				while (storedPosition.load(std::memory_order_acquire) == Position::None) {
-					pros::delay(20);
-				}
-				Position position = storedPosition.load(std::memory_order_acquire);
-				if (position == Position::Top) {
-					while (topAverage - topLineTracker.get_value() > 700) {
-						pros::delay(5);
-					}
-				} else {
-					while (bottomAverage - bottomLineTracker.get_value() > 700) {
-						pros::delay(5);
-					}
-				}
-				stopAll();
-				isIndexing.store(false, std::memory_order_release);
-				storedPosition.store(Position::None, std::memory_order_release);
-				controlMode.store(ControlMode::Voltage, std::memory_order_release);
-			}
-		}
+	std::cout << "[Conveyor] Waiting for optical sensors..." << std::endl;
+	while (!areSensorsReady.load(std::memory_order_acquire)) {
 		pros::delay(20);
 	}
+	std::cout << "[Conveyor] Optical sensors are ready!" << std::endl;
+	while (
+		areSensorsReady.load(std::memory_order_acquire) && 
+		task->notifyTake(0) == 0U
+	) {
+		updateSensors();
+
+		auto mode = controlMode.load(std::memory_order_acquire);
+		if (mode == ControlMode::Voltage) {
+			continue;
+		}
+		if (mode == ControlMode::WaitUntilPassed) {
+			bool passing = currentlyPassing.load(std::memory_order_acquire);
+			if (isBallIn(position)) {
+				if (!passing) {
+					currentlyPassing.store(true, std::memory_order_release);
+					ballsPassed.store(
+						ballsPassed.load(std::memory_order_acquire) + 1, 
+						std::memory_order_release
+					);
+				}
+			} else if (passing) {
+				currentlyPassing.store(false, std::memory_order_release);
+			}
+		}
+		
+		std::cout << "Proximity values: " << midSensor.getProximity() << " | " << topSensor.getProximity() << std::endl;
+		pros::delay(20);
+	}
+}
+
+void Conveyor::updateSensors() {
+	isBallPresent[static_cast<int>(BallPosition::Middle)] = 
+		midSensor.getProximity() > CONVEYOR_OPTICAL_THRESHOLD;
+	isBallPresent[static_cast<int>(BallPosition::Top)] = 
+		topSensor.getProximity() > CONVEYOR_OPTICAL_THRESHOLD;
 }
 } // namespace robot

@@ -84,6 +84,7 @@ void opcontrol(void);
 #include <string>
 #include <sstream>
 #include <atomic>
+#include <array>
 #endif
 
 #endif  // _PROS_MAIN_H_

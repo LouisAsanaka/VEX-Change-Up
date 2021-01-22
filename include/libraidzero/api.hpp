@@ -38,3 +38,4 @@
 #include "libraidzero/util/mathUtil.hpp"
 #include "libraidzero/util/plotter.hpp"
 #include "libraidzero/util/taskWrapper.hpp"
+#include "libraidzero/util/stateMachine.hpp"

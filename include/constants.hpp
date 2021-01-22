@@ -17,6 +17,8 @@ constexpr okapi::QLength WHEEL_TRACK                  = 12.9_in; //12.63
 constexpr okapi::QLength TRACKING_WHEEL_DIAMETER      = 2.80_in;
 constexpr okapi::QLength TRACKING_BACK_WHEEL_DISTANCE = 5.7_in;
 
+constexpr int CONVEYOR_OPTICAL_THRESHOLD = 240;
+
 // Drive profiling constants
 constexpr double DRIVE_MAX_VEL   = 0.5;
 constexpr double DRIVE_MAX_ACCEL = 0.5;

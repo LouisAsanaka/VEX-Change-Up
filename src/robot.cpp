@@ -15,6 +15,8 @@ namespace robot {
 		if (NOT_INITIALIZE_TASK && NOT_COMP_INITIALIZE_TASK) {
 			conveyor->notifyWhenDeletingRaw(pros::c::task_get_current());
 		}
+		pros::delay(200);
+		conveyor->enableSensors();
 	}
 
 }

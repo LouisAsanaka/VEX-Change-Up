@@ -6,7 +6,7 @@ namespace robot {
 
 Intake::Intake() {
 	MotorGroup motors {{-6, 8}};
-	motors.setGearing(AbstractMotor::gearset::green);
+	motors.setGearing(AbstractMotor::gearset::blue);
 	motors.setBrakeMode(AbstractMotor::brakeMode::brake);
 
 	controller = std::make_unique<MotorController>(motors);

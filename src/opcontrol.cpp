@@ -24,7 +24,6 @@ void opcontrol() {
 
 	robot::drive->resetEncoders();
 	robot::drive->controller->setState({0_m, 0_m, 0_deg});
-	robot::conveyor->calibrate();
 
 	int startTime = pros::millis();
 	while (true) {
@@ -92,11 +91,11 @@ void opcontrol() {
 		bool topUp = master.getDigital(ControllerDigital::L1);
 		bool bottomUp = master.getDigital(ControllerDigital::L2);
 		if (topUp) {
-			robot::conveyor->moveUp(1.0, robot::Conveyor::Position::Top);
-			robot::conveyor->moveUp(1.0, robot::Conveyor::Position::Bottom);
+			robot::conveyor->moveUp(1.0, robot::Conveyor::RollerPosition::Top);
+			robot::conveyor->moveUp(1.0, robot::Conveyor::RollerPosition::Bottom);
 		} else if (bottomUp) {
-			robot::conveyor->moveDown(1.0, robot::Conveyor::Position::Top);
-			robot::conveyor->moveDown(1.0, robot::Conveyor::Position::Bottom);
+			robot::conveyor->moveDown(1.0, robot::Conveyor::RollerPosition::Top);
+			robot::conveyor->moveDown(1.0, robot::Conveyor::RollerPosition::Bottom);
 		} else {
 			robot::conveyor->stopAll();
 		}

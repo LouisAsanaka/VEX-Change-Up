@@ -1,6 +1,5 @@
 #pragma once
 
-#include "libraidzero/util/taskWrapper.hpp"
 #include "main.h"
 #include "libraidzero/api.hpp"
 
@@ -8,42 +7,50 @@ namespace robot {
 
 class Conveyor : public TaskWrapper {
 public:
-	enum class Position {
-		Top, Bottom, None
+	enum class RollerPosition {
+		Top, Bottom
+	};
+	enum class BallPosition {
+		Bottom = 0, Middle = 1, Top = 2
 	};
 	enum class ControlMode {
-		Voltage, ScoreCount, StoreBall, WaitUntilEmpty
+		Voltage, WaitUntilPassed, WaitUntilStored, WaitUntilEmpty
 	};
 
 	std::unique_ptr<MotorController> topController;
 	std::unique_ptr<MotorController> bottomController;
 
-	pros::ADIAnalogIn bottomLineTracker;
-	int bottomAverage{0};
-	pros::ADIAnalogIn topLineTracker;
-	int topAverage{0};
+	okapi::OpticalSensor midSensor;
+	okapi::OpticalSensor topSensor;
 
+	std::atomic_bool areSensorsReady{false};
 	std::atomic_bool isIndexing{false};
 	std::atomic<ControlMode> controlMode{ControlMode::Voltage};
-	std::atomic_int targetBallsPassed{0};
-	std::atomic<Position> storedPosition{Position::None};
+	std::atomic<BallPosition> position;
+	std::atomic_int ballsPassed{0};
+	std::atomic_bool currentlyPassing{false};
+
+	std::array<bool, 3> isBallPresent;
 
 	Conveyor();
 
-	void moveUp(double, Position);
-	void moveDown(double, Position);
+	void moveUp(double, RollerPosition);
+	void moveDown(double, RollerPosition);
 	void moveBoth(double);
 	void stopAll();
-	void stop(Position);
+	void stop(RollerPosition);
 
-	void startIndexing(ControlMode);
-	void waitUntilPassed(int);
-	void waitUntilStored(Position);
-	void waitUntilEmpty(Position);
+	void enableSensors();
+	bool isBallIn(BallPosition);
 
-	void calibrate();
+	void startCountingPassed(BallPosition);
+	void waitUntilPassed(int, int itimeout = 0);
+	void waitUntilStored(BallPosition, int itimeout = 0);
+	void waitUntilEmpty(BallPosition, int itimeout = 0);
 
 	void loop() override;
+private:
+	void updateSensors();
 };
 
 } // namespace robot
