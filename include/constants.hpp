@@ -63,7 +63,7 @@ constexpr double STRAFE_ANGLE_KP = 0.03;
 constexpr double STRAFE_ANGLE_KI = 0.0;
 constexpr double STRAFE_ANGLE_KD = 0.001;
 constexpr planner::TrapezoidProfile::Constraints
-    STRAFE_ANGLE_CONTSTRAINTS {360, 360}; // deg/s, deg/s^2
+    STRAFE_ANGLE_CONTSTRAINTS {3600, 450}; // deg/s, deg/s^2
 
 // Controller
 constexpr double CONTROLLER_DEADBAND = 0.1;

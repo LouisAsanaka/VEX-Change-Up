@@ -140,13 +140,13 @@ void Conveyor::loop() {
 			if (isBallIn(position)) {
 				if (!passing) {
 					currentlyPassing.store(true, std::memory_order_release);
-					ballsPassed.store(
-						ballsPassed.load(std::memory_order_acquire) + 1, 
-						std::memory_order_release
-					);
 				}
 			} else if (passing) {
 				currentlyPassing.store(false, std::memory_order_release);
+				ballsPassed.store(
+					ballsPassed.load(std::memory_order_acquire) + 1, 
+					std::memory_order_release
+				);
 			}
 		}
 		
