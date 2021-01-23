@@ -30,10 +30,10 @@ void GUI::initMenu() {
     lv_obj_set_style(lv_scr_act(), &backgroundStyle);
 
     // Background image
-    LV_IMG_DECLARE(raidzero);
-    lv_obj_t* logo = lv_img_create(lv_scr_act(), NULL);
-    lv_img_set_src(logo, &raidzero);
-    lv_obj_align(logo, NULL, LV_ALIGN_CENTER, 0, 0);
+    //LV_IMG_DECLARE(raidzero);
+    //lv_obj_t* logo = lv_img_create(lv_scr_act(), NULL);
+    //lv_img_set_src(logo, &raidzero);
+    //lv_obj_align(logo, NULL, LV_ALIGN_CENTER, 0, 0);
 
     // Button Styles
     lv_style_copy(&buttonStyleREL, &lv_style_plain);
