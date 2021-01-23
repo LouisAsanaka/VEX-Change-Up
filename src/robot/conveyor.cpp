@@ -84,7 +84,7 @@ void Conveyor::waitUntilPassed(int number, int itimeout) {
 		ballsPassed.load(std::memory_order_acquire) < number &&
 		pros::millis() - startTime < itimeout
 	) {
-		pros::delay(20);
+		pros::delay(5);
 	}
 	controlMode.store(ControlMode::Voltage, std::memory_order_release);
 }
@@ -99,7 +99,7 @@ void Conveyor::waitUntilStored(BallPosition iposition, int itimeout) {
 
 	int startTime = pros::millis();
 	while (!isBallIn(iposition) && pros::millis() - startTime < itimeout) {
-		pros::delay(20);
+		pros::delay(5);
 	}
 	controlMode.store(ControlMode::Voltage, std::memory_order_release);
 }
@@ -114,7 +114,7 @@ void Conveyor::waitUntilEmpty(BallPosition iposition, int itimeout) {
 
 	int startTime = pros::millis();
 	while (isBallIn(iposition) && pros::millis() - startTime < itimeout) {
-		pros::delay(20);
+		pros::delay(5);
 	}
 	controlMode.store(ControlMode::Voltage, std::memory_order_release);
 }
@@ -151,7 +151,7 @@ void Conveyor::loop() {
 		}
 		
 		std::cout << "Proximity values: " << midSensor.getProximity() << " | " << topSensor.getProximity() << std::endl;
-		pros::delay(20);
+		pros::delay(5);
 	}
 }
 

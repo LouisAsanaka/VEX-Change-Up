@@ -26,34 +26,10 @@ void autonomous() {
     } else if (selectedAuton == "Right 2") {
         rightSide2(true, true);
     } else if (selectedAuton == "Right 3") {
-        rightSide3(true);
+        rightSide3(true, true);
     } else {
         reset(0_m, 0_m, 0_deg, false);
-        rightSide3(true);
-        // robot::intake->spinIn(1.0);
-        // robot::conveyor->moveBoth(1.0);
-        // //robot::conveyor->startCountingPassed(BallPosition::Top);
-        // robot::conveyor->waitUntilEmpty(BallPosition::Top);
-        // robot::conveyor->stopAll();
-        // robot::intake->stop();
-        // std::shared_ptr<PurePursuitPath> path = std::make_shared<PurePursuitPath>(
-        //     std::vector<Pose2d>{
-        //         {0.6_m, 0_m, 0_deg},
-        //         {1_m, 1_m, 0_deg}
-        //     }, 0.02_m,
-        //     PurePursuitPath::Constraints{0.6, 1.0, 2.0}
-        // );
-        // double b = 0.98;
-        // double a = 1 - b;
-        // double tol = 0.001;
-        // path->smoothen(a, b, tol);
-        // path->fillPointInformation();
-
-        // for (const auto& point : path->points) {
-        //     std::cout << point.pose.toString() << " => " << point.distanceFromStart << "m, " << point.curvature << " curvature, " << point.targetVelocity << " m/s" << std::endl;
-        // }
-        // robot::drive->controller->followPath(path, 0.3_m, 0.01_m, {0.01, 1.0, 15.0});
-        // std::cout << Pose2d::fromOdomState(robot::drive->controller->getState()).toString() << std::endl;
+        rightSideCenter(true, true);
     }
 
     std::stringstream ss;
@@ -93,14 +69,20 @@ void backupFromGoal() {
 }
 
 void releaseComponents() {
-    // Backup to release intake
-    //robot::drive->model->xArcade(0.0, -1.0, 0.0);
-    //pros::delay(400);
-    robot::conveyor->moveUp(0.8, RollerPosition::Top);
-    //robot::drive->model->xArcade(0.0, 1.0, 0.0);
+    // Release hood by moving the top conveyor
+    robot::conveyor->moveBoth(-1.0);
     pros::delay(100);
+    robot::conveyor->stopAll();
+    pros::delay(150);
+}
+
+void scoreOneBall() {
+    robot::conveyor->moveBoth(1.0);
+    robot::conveyor->startCountingPassed(BallPosition::Top);
+    robot::conveyor->waitUntilPassed(1, 1200);
+    robot::conveyor->stop(RollerPosition::Bottom);
+    pros::delay(10);
     robot::conveyor->stop(RollerPosition::Top);
-    //robot::drive->model->stop();
 }
 
 void rightSide1(bool shouldReset, bool shouldBackOut) {
@@ -109,25 +91,23 @@ void rightSide1(bool shouldReset, bool shouldBackOut) {
     }
     releaseComponents();
 
+    // Intake the corner ball
     robot::intake->spinIn(1.0);
-
-    // Strafe to face the corner goal
     robot::drive->controller->setMaxVoltage(0.5 * 12000);
     robot::drive->controller->strafeToPose({0.0_m, 0.15_m, 0_deg}, 800);
-    pros::delay(100);
+    pros::delay(50);
     robot::intake->stop();
 
+    // Drive and angle towards the goal
     robot::drive->controller->setMaxVoltage(1.0 * 12000);
     robot::drive->controller->strafeToPose({-0.1_m, 0.3_m, -48_deg}, 1000);
     robot::drive->model->xArcade(0.0, 1.0, 0.0);
     pros::delay(200);
     robot::drive->model->stop();  
 
-    robot::conveyor->moveBoth(1.0);
-    robot::conveyor->startCountingPassed(BallPosition::Top);
-    robot::conveyor->waitUntilPassed(1, 1200);
-    //pros::delay(50);
-    robot::conveyor->stopAll();
+    // Score one ball
+    scoreOneBall();
+    pros::delay(50);
 
     if (shouldBackOut) {
         backout(1000);
@@ -145,20 +125,20 @@ void rightSide2(bool shouldReset, bool shouldBackOut) {
     backout(700);
     robot::intake->stop();
 
+    // Strafing to the home row middle goal
     robot::drive->controller->strafeToPose({-0.35_m, -1.05_m, -90_deg}, 3000);
     
-    robot::drive->controller->driveForDistance(0.18_m, 700);
-    robot::conveyor->moveBoth(1.0);
-    robot::conveyor->startCountingPassed(BallPosition::Top);
-    robot::conveyor->waitUntilPassed(1, 2000);
-    robot::conveyor->stopAll();
+    // Drive towards the goal and score one ball
+    robot::drive->controller->driveForDistance(0.21_m, 800);
+    scoreOneBall();
+    pros::delay(50);
 
     if (shouldBackOut) {
         backout(1000);
     }
 }
 
-void rightSide3(bool shouldReset) {
+void rightSide3(bool shouldReset, bool shouldBackOut) {
     if (shouldReset) {
         reset(0_m, 0_m, 0_deg);
     }
@@ -167,65 +147,62 @@ void rightSide3(bool shouldReset) {
     
     // Move to third goal while out-taking
     robot::intake->spinOut(1.0);
-    robot::drive->controller->strafeToPose({-0.4_m, -2.0_m, -135_deg}, 2000);
+    robot::drive->controller->strafeToPose({-0.35_m, -2.0_m, -135_deg}, 2000);
     robot::intake->stop();
 
-    // Intake the ball in front of the third goal & score it
+    // Intake the ball in front of the third goal
     robot::intake->spinIn(1.0);
     robot::drive->controller->strafeToPose({-0.2_m, -2.4_m, -135_deg}, 1000);
-    //robot::drive->controller->driveForDistance(0.42_m, 1000);
     pros::delay(200);
     robot::intake->stop();
 
-    robot::drive->controller->driveForDistance(0.3_m, 1000);
-
+    // Drive towards the goal and score one ball
+    robot::drive->controller->driveForDistance(0.25_m, 800);
     robot::conveyor->moveBoth(1.0);
     robot::conveyor->startCountingPassed(BallPosition::Top);
-    robot::conveyor->waitUntilPassed(1, 2000);
-    robot::conveyor->stopAll();
+    robot::conveyor->waitUntilPassed(1, 1200);
+    robot::conveyor->stop(RollerPosition::Bottom);
+    pros::delay(10);
+    robot::conveyor->stop(RollerPosition::Top);
+    pros::delay(50);
 
-    // Backup and out-take
-    robot::intake->spinOut(1.0);
-    robot::drive->model->xArcade(0.0, -1.0, 0.0);
-    pros::delay(800);
-    robot::intake->stop();
-    robot::drive->model->stop();
-    return;
+    if (shouldBackOut) {
+        // Backup and out-take
+        robot::intake->spinOut(1.0);
+        backout(1000);
+        robot::intake->stop();
+    }
 }
 
-void goingMid() {
-    reset(0_m, 0_m, 0_deg);
-    rightSide1(true, false);
-    // Backout to second goal
+void rightSideCenter(bool shouldReset, bool shouldBackOut) {
+    if (shouldReset) {
+        reset(0_m, 0_m, 0_deg);
+    }
+    rightSide1(false, false);
+    robot::drive->controller->driveForDistance(0.05_m, 500);
+    
+    // Intake the bottom ball
     robot::intake->spinIn(1.0);
-    robot::drive->model->xArcade(0.0, -0.8, 0.0);
-    //robot::conveyor->startIndexing(robot::Conveyor::ControlMode::StoreBall);
-    robot::conveyor->moveBoth(1.0);
-    //robot::conveyor->waitUntilStored(RollerPosition::Top);
-    robot::conveyor->stopAll();
+
+    robot::conveyor->moveUp(1.0, RollerPosition::Bottom);
+    robot::conveyor->waitUntilStored(BallPosition::Top, 1000);
+    robot::conveyor->waitUntilStored(BallPosition::Middle, 1000);
+    robot::conveyor->stop(RollerPosition::Bottom);
     robot::intake->stop();
-    robot::drive->model->stop();
-    robot::drive->controller->strafeToPose({-0.73_m, -1.31_m, -225_deg}, 4000);
-    robot::drive->model->xArcade(0.0, 0.4, 0.0);
-    pros::delay(100);
+
+    robot::conveyor->moveDown(0.5, RollerPosition::Top);
+    
     robot::intake->spinOut(1.0);
-    //robot::conveyor->startIndexing(robot::Conveyor::ControlMode::WaitUntilEmpty);
-    robot::conveyor->moveBoth(-1.0);
-    //robot::conveyor->waitUntilEmpty(RollerPosition::Top);
-    pros::delay(400);
-    robot::conveyor->stopAll();
-    pros::delay(100);
+    pros::delay(200);
+    robot::conveyor->stop(RollerPosition::Top);
+    backout(600);
     robot::intake->stop();
-    robot::drive->controller->strafeToPose({-0.95_m, -0.43_m, 0_deg}, 4000);
-    // Score the second ball by ramming into the goal & backing up
-    robot::drive->model->xArcade(0.0, 0.7, 0.0);
-    pros::delay(500); // 1000 millis
-    backupFromGoal();
-    robot::conveyor->moveBoth(1.0);
-    pros::delay(1100);
-    robot::conveyor->stopAll();
-    pros::delay(100);
-    robot::drive->model->xArcade(0.0, -1.0, 0.0);
-    pros::delay(1000);
-    robot::drive->model->stop();
+
+    robot::drive->controller->strafeToPose({-1.13_m, -0.87_m, 135_deg}, 3000);
+    robot::drive->controller->driveForDistance(0.15_m, 800);
+    scoreOneBall();
+
+    robot::drive->controller->strafeToPose({-0.18_m, -1.06_m, -90_deg}, 3000);
+    scoreOneBall();
+    backout(500);
 }
