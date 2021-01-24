@@ -12,9 +12,13 @@ void backupFromGoal();
 void releaseComponents();
 void scoreOneBall();
 
-void rightSide1(bool shouldReset = true, bool shouldBackOut = true);
-void rightSide2(bool shouldReset = true, bool shouldBackOut = true);
-void rightSide3(bool shouldReset = true, bool shouldBackOut = true);
-void rightSideCenter(bool shouldReset = true, bool shouldBackOut = true);
+enum class StartingSide {
+    Left, Right
+};
+
+void runSide1(StartingSide side, bool shouldReset = true, bool shouldBackOut = true);
+void runSide2(StartingSide side, bool shouldReset = true, bool shouldBackOut = true);
+void runSide3(StartingSide side, bool shouldReset = true, bool shouldBackOut = true);
+void runSideCenter(StartingSide side, bool shouldReset = true, bool shouldBackOut = true);
 
 void autonomous();
