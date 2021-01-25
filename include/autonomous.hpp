@@ -20,5 +20,7 @@ void runSide1(StartingSide side, bool shouldReset = true, bool shouldBackOut = t
 void runSide2(StartingSide side, bool shouldReset = true, bool shouldBackOut = true);
 void runSide3(StartingSide side, bool shouldReset = true, bool shouldBackOut = true);
 void runSideCenter(StartingSide side, bool shouldReset = true, bool shouldBackOut = true);
+void runLeftSideCenterAndSide(bool shouldReset = true, bool shouldBackOut = true);
+void runWashCorner(StartingSide side, bool shouldReset = true, bool shouldBackOut = true);
 
 void autonomous();
