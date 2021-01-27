@@ -149,8 +149,7 @@ void Conveyor::loop() {
 				);
 			}
 		}
-		
-		std::cout << "Proximity values: " << midSensor.getProximity() << " | " << topSensor.getProximity() << std::endl;
+		//std::cout << "Proximity values: " << midSensor.getProximity() << " | " << topSensor.getProximity() << std::endl;
 		pros::delay(5);
 	}
 }

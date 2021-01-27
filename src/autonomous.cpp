@@ -29,10 +29,10 @@ void autonomous() {
         runSide3(StartingSide::Right, true, true);
     } else {
         reset(0_m, 0_m, 0_deg, false);
-        // runSide1(StartingSide::Left, true, true);
-        runLeftSideCenterAndSide(true, true);
-        //runWashCorner(StartingSide::Right, true, true);
-        //runWashCorner(StartingSide::Left, true, true);
+        // runSide3(StartingSide::Right, true, true);
+        // runWashCorner(StartingSide::Right, true, true);
+        runLeftSideMidCenter(true, true);
+        //runWashCorner(StartingSide::Left, tr  ue, true);
         //runSideCenterAndSide(StartingSide::Right, true, true);
     }
 
@@ -67,17 +67,18 @@ void backout(int milliseconds) {
 }
 
 void backupFromGoal() {
-    robot::drive->model->xArcade(0.0, -0.6, 0.0);
-    pros::delay(150);
+    robot::drive->model->xArcade(0.0, -0.8, 0.0);
+    pros::delay(120);
     robot::drive->model->stop();
 }
 
 void releaseComponents() {
     // Release hood by moving the top conveyor
-    robot::conveyor->moveBoth(-0.5);
-    pros::delay(100);
-    robot::conveyor->stopAll();
+    robot::conveyor->moveDown(0.7, RollerPosition::Top);
+    robot::conveyor->moveDown(0.5, RollerPosition::Bottom);
     pros::delay(200);
+    robot::conveyor->stopAll();
+    pros::delay(250);
 }
 
 void scoreOneBall() {
@@ -109,12 +110,13 @@ void runSide1(StartingSide side, bool shouldReset, bool shouldBackOut) {
     } else {
         robot::drive->controller->strafeToPose({0.1_m, 0.3_m, 48_deg}, 1000);
     }
-    
-    // robot::drive->model->xArcade(0.0, 1.0, 0.0);
-    // pros::delay(400);
-    // robot::drive->model->stop();  
-    robot::drive->controller->driveForDistance(0.05_m, 600);
-    // backupFromGoal();
+    robot::intake->spinIn(1.0);
+    robot::drive->model->xArcade(0.0, 1.0, 0.0);
+    pros::delay(800);
+    robot::drive->model->stop(); 
+    robot::intake->stop(); 
+    // robot::drive->controller->driveForDistance(0.05_m, 600);
+    backupFromGoal();
 
     // Score one ball
     scoreOneBall();
@@ -145,8 +147,9 @@ void runSide2(StartingSide side, bool shouldReset, bool shouldBackOut) {
         robot::drive->controller->strafeToPose({0.35_m, -1.05_m, 90_deg}, 3000);
     }
     // Drive towards the goal and score one ball
-    robot::drive->controller->driveForDistance(0.25_m, 1000);
+    robot::drive->controller->driveForDistance(0.3_m, 600);
     backupFromGoal();
+    pros::delay(30);
     scoreOneBall();
     pros::delay(50);
 
@@ -173,12 +176,13 @@ void runSide3(StartingSide side, bool shouldReset, bool shouldBackOut) {
 
     // Intake the ball in front of the third goal
     robot::intake->spinIn(1.0);
-    robot::drive->controller->driveForDistance(0.38_m, 1000);
+    robot::drive->controller->driveForDistance(0.4_m, 1000);
     pros::delay(200);
     robot::intake->stop();
 
     // Drive towards the goal and score one ball
-    robot::drive->controller->driveForDistance(0.04_m, 800);
+    // robot::drive->controller->driveForDistance(0.04_m, 800);
+    //backupFromGoal();
     scoreOneBall();
     pros::delay(50);
 
@@ -235,71 +239,99 @@ void runSideCenter(StartingSide side, bool shouldReset, bool shouldBackOut) {
     backout(500);
 }
 
-void runLeftSideCenterAndSide(bool shouldReset, bool shouldBackOut) {
-    if (shouldReset) {
-        reset(0_m, 0_m, 0_deg);
-    }
-    runSide1(StartingSide::Left, false, false);
-
-    robot::conveyor->moveDown(0.3, RollerPosition::Top);
-    robot::conveyor->moveDown(0.3, RollerPosition::Bottom);
-    pros::delay(200);
-    robot::conveyor->stopAll();
-    backout(400);
-
-    robot::intake->spinOut(0.8);
-    backout(200);
-    robot::intake->stop();
-
-    // robot::intake->spinIn(1.0);
-    robot::drive->controller->strafeToPose({1.13_m, -0.77_m, -130_deg}, 3000);
-    robot::drive->controller->driveForDistance(0.15_m, 1200);
-    pros::delay(200);
-    scoreOneBall();
-    pros::delay(100);
-    backout(1000);
-    return;
-    pros::delay(1000);
-    robot::drive->model->xArcade(0.0, -1.0, -1.0);
-    pros::delay(500);
-    robot::drive->model->stop();
-    robot::intake->stop();
-}
-
 void runWashCorner(StartingSide side, bool shouldReset, bool shouldBackOut) {
     if (shouldReset) {
         reset(0_m, 0_m, 0_deg);
     }
     runSide1(side, false, false);
-    robot::drive->controller->driveForDistance(0.05_m, 500);
+    robot::drive->model->xArcade(0.0, 1.0, 0.0);
+    pros::delay(600);
+    // robot::drive->model->stop();
+    backupFromGoal();
+    // robot::drive->controller->driveForDistance(0.05_m, 500);
     
     // Intake the bottom ball
     robot::intake->spinIn(1.0);
-    robot::drive->controller->driveForDistance(-0.1_m, 600);
-    robot::drive->controller->driveForDistance(0.1_m, 600);
 
     robot::conveyor->moveUp(1.0, RollerPosition::Bottom);
-    robot::conveyor->waitUntilStored(BallPosition::Top, 1000);
+    robot::drive->controller->driveForDistance(-0.1_m, 800);
+    robot::drive->controller->driveForDistance(0.1_m, 800);
+    robot::conveyor->waitUntilStored(BallPosition::Top, 2000);
     robot::conveyor->waitUntilStored(BallPosition::Middle, 2000);
     robot::conveyor->stop(RollerPosition::Bottom);
-    pros::delay(300);
+
     robot::intake->stop();
 
-    robot::conveyor->moveBoth(-0.3);
-    robot::drive->controller->driveForDistance(-0.2_m, 1000);
-    robot::drive->controller->driveForDistance(0.2_m, 1000);
+    // Now with 2 balls in conveyor, score 1
+    robot::conveyor->moveBoth(-1.0);
+    pros::delay(450);
     robot::conveyor->stopAll();
+    scoreOneBall();
+    pros::delay(100);
+    robot::drive->controller->driveForDistance(-0.1_m, 800);
+    robot::drive->controller->driveForDistance(0.1_m, 800);
+
+    // Now with 1 ball in the conveyor and opponent colored ball in goal
+
+    // Intake the bottom ball
+    robot::intake->spinIn(1.0);
+
+    robot::conveyor->moveUp(1.0, RollerPosition::Bottom);
+    robot::drive->controller->driveForDistance(-0.1_m, 800);
+    robot::drive->controller->driveForDistance(0.1_m, 800);
+    //robot::conveyor->waitUntilStored(BallPosition::Top, 2000);
+    robot::conveyor->waitUntilStored(BallPosition::Middle, 2000);
+    robot::conveyor->stop(RollerPosition::Bottom);
+
+    robot::intake->stop();
+
+    // Now with 2 balls in conveyor, score 1
+    robot::conveyor->moveBoth(-1.0);
+    pros::delay(450);
+    robot::conveyor->stopAll();
+    scoreOneBall();
+    pros::delay(100);
+
+    if (shouldBackOut) {
+        robot::intake->spinOut(1.0);
+        backout(500);
+        robot::intake->stop();
+    }
+}
+
+void runLeftSideMidCenter(bool shouldReset, bool shouldBackOut) {
+    if (shouldReset) {
+        reset(0_m, 0_m, 0_deg);
+    }
+    runSide1(StartingSide::Left, false, false);
+
+    // Backout to second goal
+    robot::conveyor->moveDown(1.0, RollerPosition::Top);
+    pros::delay(100);
+    robot::intake->spinOut(1.0);
+    backout(600);
+    robot::intake->stop();
+    robot::conveyor->stop(RollerPosition::Top);
+
+    robot::drive->controller->strafeToPose({0.9_m, -0.17_m, -90_deg}, 3000);
+
+    robot::intake->spinIn(1.0);
+    robot::conveyor->moveUp(1.0, RollerPosition::Bottom);
+    robot::drive->controller->setMaxVoltage(0.8 * 12000);
+    robot::drive->controller->driveForDistance(0.32_m, 1000);
+    robot::conveyor->waitUntilStored(BallPosition::Middle, 700);
+    robot::conveyor->stop(RollerPosition::Bottom);
+    robot::intake->stop();
+
+    // Hit the center in
+    robot::drive->controller->setMaxVoltage(1.0 * 12000);
+    robot::drive->controller->strafeToPose({1.26_m, -0.75_m, -90_deg}, 2000);
+    robot::drive->controller->strafeToPose({0.16_m, -1.06_m, 90_deg}, 3000);
 
     scoreOneBall();
     pros::delay(50);
 
-    // Intake the bottom ball
-    robot::intake->spinIn(1.0);
-
-    robot::conveyor->moveUp(1.0, RollerPosition::Bottom);
-    robot::conveyor->waitUntilStored(BallPosition::Top, 1000);
-    robot::conveyor->waitUntilStored(BallPosition::Middle, 2000);
-    robot::conveyor->stop(RollerPosition::Bottom);
-    pros::delay(300);
-    robot::intake->stop();
+    if (shouldBackOut) {
+        backout(1000);
+    }
 }
